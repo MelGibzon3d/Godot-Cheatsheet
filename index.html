@@ -2407,6 +2407,69 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
     <span class="function">move_and_slide</span>()</code></pre>
                 </div>
 
+                <h3>FPS Controller with Fly Mode (Toggle)</h3>
+                <div class="info-box">
+                    <strong>Setup Instructions:</strong>
+                    <ul>
+                        <li>Use the same <strong>Node Setup</strong> as the first controller.</li>
+                        <li><strong>Input Map</strong>: Go to Project Settings &rarr; Input Map.</li>
+                        <li>Add a new action named <span class="inline-code">fly</span> and bind it to the <kbd>F</kbd>
+                            key.</li>
+                    </ul>
+                </div>
+
+                <div class="code-block">
+                    <pre><code><span class="keyword">extends</span> <span class="type">CharacterBody3D</span>
+
+<span class="keyword">const</span> WALK_SPEED = <span class="number">5.0</span>
+<span class="keyword">const</span> FLY_SPEED = <span class="number">15.0</span>
+<span class="keyword">const</span> JUMP_VELOCITY = <span class="number">4.5</span>
+<span class="keyword">@export</span> <span class="keyword">var</span> mouse_sensitivity = <span class="number">0.002</span>
+<span class="keyword">@export</span> <span class="keyword">var</span> is_flying = <span class="keyword">false</span>
+
+<span class="keyword">@onready</span> <span class="keyword">var</span> camera = $Camera3D
+
+<span class="keyword">func</span> <span class="function">_ready</span>():
+    Input.mouse_mode = Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>
+
+<span class="keyword">func</span> <span class="function">_unhandled_input</span>(event: InputEvent) -> <span class="type">void</span>:
+    <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"fly"</span>):
+        is_flying = !is_flying
+        velocity = <span class="function">Vector3</span>.<span class="keyword">ZERO</span> <span class="comment"># Reset momentum on toggle</span>
+
+    <span class="comment"># Smart Escape: Release mouse first, then Quit</span>
+    <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"ui_cancel"</span>):
+        <span class="keyword">if</span> Input.mouse_mode == Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>:
+            Input.mouse_mode = Input.<span class="keyword">MOUSE_MODE_VISIBLE</span>
+        <span class="keyword">else</span>:
+            <span class="function">get_tree</span>().<span class="function">quit</span>()
+        
+    <span class="keyword">if</span> event <span class="keyword">is</span> <span class="type">InputEventMouseMotion</span> <span class="keyword">and</span> Input.mouse_mode == Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>:
+        <span class="function">rotate_y</span>(-event.relative.x * mouse_sensitivity)
+        camera.<span class="function">rotate_x</span>(-event.relative.y * mouse_sensitivity)
+        camera.rotation.x = <span class="function">clamp</span>(camera.rotation.x, <span class="function">deg_to_rad</span>(<span class="number">-89</span>), <span class="function">deg_to_rad</span>(<span class="number">89</span>))
+
+<span class="keyword">func</span> <span class="function">_physics_process</span>(delta: <span class="type">float</span>) -> <span class="type">void</span>:
+    <span class="keyword">var</span> input_dir = Input.<span class="function">get_vector</span>(<span class="string">"ui_left"</span>, <span class="string">"ui_right"</span>, <span class="string">"ui_up"</span>, <span class="string">"ui_down"</span>)
+    
+    <span class="keyword">if</span> is_flying:
+        <span class="comment"># Flight: direction follows camera orientation (includes Y axis)</span>
+        <span class="keyword">var</span> direction = (camera.global_transform.basis * <span class="function">Vector3</span>(input_dir.x, <span class="number">0</span>, input_dir.y)).<span class="function">normalized</span>()
+        velocity = direction * FLY_SPEED
+    <span class="keyword">else</span>:
+        <span class="comment"># Grounded: normal physics</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> <span class="function">is_on_floor</span>():
+            velocity += <span class="function">get_gravity</span>() * delta
+        <span class="keyword">if</span> Input.<span class="function">is_action_just_pressed</span>(<span class="string">"ui_accept"</span>) <span class="keyword">and</span> <span class="function">is_on_floor</span>():
+            velocity.y = JUMP_VELOCITY
+            
+        <span class="keyword">var</span> direction = (transform.basis * <span class="function">Vector3</span>(input_dir.x, <span class="number">0</span>, input_dir.y)).<span class="function">normalized</span>()
+        velocity.x = direction.x * WALK_SPEED
+        velocity.z = direction.z * WALK_SPEED
+
+    <span class="function">move_and_slide</span>()</code></pre>
+                </div>
+
                 <h3>Change Scene Button (Button)</h3>
                 <div class="code-block">
                     <pre><code><span class="keyword">extends</span> <span class="type">Button</span>
