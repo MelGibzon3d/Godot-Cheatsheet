@@ -2443,6 +2443,79 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
         <span class="keyword">else</span>:
             <span class="function">get_tree</span>().<span class="function">quit</span>()</code></pre>
                 </div>
+
+                <h3>Foliage Wind Shader (Spatial)</h3>
+                <div class="info-box">
+                    <strong>Texture Setup Required:</strong>
+                    <ul>
+                        <li><span class="inline-code">Wind Noise</span>: Create a <span
+                                class="inline-code">NoiseTexture2D</span>.</li>
+                        <li>Inside NoiseTexture settings: Set <span class="inline-code">Seamless</span> to On.</li>
+                        <li>Inside FastNoiseLite settings: Set <span class="inline-code">Frequency</span> to ~0.02 for
+                            smooth clouds.</li>
+                    </ul>
+                    <p
+                        style="margin-top: 10px; font-size: 0.9em; border-top: 1px solid var(--border); padding-top: 10px;">
+                        💡 <strong>Vertex Colors:</strong> This shader uses the <strong>Red Channel</strong> of vertex
+                        colors to mask wind strength (0 = stiff trunk, 1 = swaying leaves).
+                    </p>
+                </div>
+
+                <div class="code-block" data-lang="glsl">
+                    <pre><code><span class="keyword">shader_type</span> spatial;
+
+<span class="keyword">render_mode</span> cull_disabled, depth_prepass_alpha, diffuse_burley, specular_disabled;
+
+<span class="comment">// Textures</span>
+<span class="keyword">uniform</span> <span class="type">sampler2D</span> albedo_texture : source_color;
+<span class="keyword">uniform</span> <span class="type">sampler2D</span> normal_texture : hint_normal;
+<span class="keyword">uniform</span> <span class="type">sampler2D</span> wind_noise : repeat_enable;
+
+<span class="keyword">uniform</span> <span class="type">float</span> normal_strength : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">5.0</span>) = <span class="number">1.0</span>;
+<span class="keyword">uniform</span> <span class="type">bool</span> debug_vertex_colors = <span class="keyword">false</span>;
+
+<span class="function">group_uniforms</span> Wind_Settings;
+<span class="keyword">uniform</span> <span class="type">float</span> wind_speed : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">2.0</span>) = <span class="number">0.5</span>;
+<span class="keyword">uniform</span> <span class="type">float</span> wind_strength : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">5.0</span>) = <span class="number">0.5</span>;
+<span class="keyword">uniform</span> <span class="type">float</span> wind_direction_x : <span class="function">hint_range</span>(<span class="number">-1.0</span>, <span class="number">1.0</span>) = <span class="number">1.0</span>;
+<span class="keyword">uniform</span> <span class="type">float</span> wind_direction_z : <span class="function">hint_range</span>(<span class="number">-1.0</span>, <span class="number">1.0</span>) = <span class="number">0.5</span>;
+<span class="keyword">uniform</span> <span class="type">float</span> wind_scale : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">1.0</span>) = <span class="number">0.1</span>;
+<span class="keyword">uniform</span> <span class="type">float</span> wind_vertical_strength : <span class="function">hint_range</span>(<span class="number">-1.0</span>, <span class="number">1.0</span>) = <span class="number">0.2</span>;
+<span class="keyword">uniform</span> <span class="type">vec2</span> plant_offset = <span class="function">vec2</span>(<span class="number">0.0</span>, <span class="number">0.0</span>);
+<span class="function">group_uniforms</span>;
+
+<span class="keyword">void</span> <span class="function">vertex</span>() {
+    <span class="type">vec3</span> world_pos = (MODEL_MATRIX * <span class="function">vec4</span>(VERTEX, <span class="number">1.0</span>)).xyz;
+    <span class="type">vec2</span> wind_dir = <span class="function">normalize</span>(<span class="function">vec2</span>(wind_direction_x, wind_direction_z));
+    <span class="type">vec2</span> noise_uv = (world_pos.xz * wind_scale) + plant_offset + (wind_dir * TIME * wind_speed);
+
+    <span class="type">float</span> noise_sample = <span class="function">texture</span>(wind_noise, noise_uv).r;
+    <span class="type">float</span> displacement = (noise_sample - <span class="number">0.5</span>) * wind_strength;
+    <span class="type">float</span> mask = COLOR.r; <span class="comment">// Red channel masks wind</span>
+
+    <span class="type">vec3</span> world_displacement = <span class="function">vec3</span>(
+        displacement * wind_dir.x * mask,
+        displacement * wind_vertical_strength * mask,
+        displacement * wind_dir.y * mask
+    );
+
+    VERTEX += (<span class="function">inverse</span>(MODEL_MATRIX) * <span class="function">vec4</span>(world_displacement, <span class="number">0.0</span>)).xyz;
+}
+
+<span class="keyword">void</span> <span class="function">fragment</span>() {
+    <span class="type">vec4</span> color = <span class="function">texture</span>(albedo_texture, UV);
+    ALPHA = color.a;
+    ALPHA_SCISSOR_THRESHOLD = <span class="number">0.25</span>;
+    NORMAL_MAP = <span class="function">texture</span>(normal_texture, UV).rgb;
+    NORMAL_MAP_DEPTH = normal_strength;
+    ALBEDO = color.rgb;
+
+    <span class="keyword">if</span> (debug_vertex_colors) {
+        ALBEDO = <span class="function">vec3</span>(COLOR.r, <span class="number">0.0</span>, <span class="number">0.0</span>);
+        ALPHA = <span class="number">1.0</span>;
+    }
+}</code></pre>
+                </div>
             </div>
 
             <div class="section">
