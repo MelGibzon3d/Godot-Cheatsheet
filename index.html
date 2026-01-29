@@ -220,6 +220,56 @@
             margin-bottom: 8px;
         }
 
+        /* Scene Tree Visualization */
+        .scene-tree {
+            font-family: 'Inter', sans-serif;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 2px solid var(--border);
+            margin: 10px 0;
+        }
+
+        .tree-node {
+            display: flex;
+            align-items: center;
+            padding: 3px 0;
+            position: relative;
+        }
+
+        .tree-node.child {
+            padding-left: 24px;
+        }
+
+        .tree-node.child::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: -10px;
+            width: 12px;
+            height: 24px;
+            border-left: 1px solid var(--text-secondary);
+            border-bottom: 1px solid var(--text-secondary);
+            opacity: 0.3;
+        }
+
+        .node-icon {
+            font-size: 1.1em;
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .node-name {
+            font-weight: 500;
+        }
+
+        .node-tag {
+            font-size: 0.8em;
+            opacity: 0.6;
+            margin-left: 8px;
+        }
+
         .use-case {
             background: linear-gradient(135deg, rgba(74, 158, 255, 0.1) 0%, rgba(255, 121, 198, 0.05) 100%);
             border: 1px solid rgba(74, 158, 255, 0.3);
@@ -2269,6 +2319,129 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
 <span class="function">push_warning</span>(<span class="string">"Missing texture"</span>)
 <span class="function">assert</span>(health > <span class="number">0</span>, <span class="string">"Player is dead!"</span>)
 <span class="function">print_stack</span>()</code></pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Quick Scripts</h2>
+
+                <h3>First-Person Controller (CharacterBody3D)</h3>
+
+                <div class="info-box">
+                    <strong>Node Setup Required:</strong>
+                    <div class="scene-tree">
+                        <div class="tree-node">
+                            <span class="node-icon">🏃</span>
+                            <span class="node-name">CharacterBody3D</span>
+                            <span class="node-tag">(Root)</span>
+                        </div>
+                        <div class="tree-node child">
+                            <span class="node-icon">📦</span>
+                            <span class="node-name">CollisionShape3D</span>
+                            <span class="node-tag">(Capsule)</span>
+                        </div>
+                        <div class="tree-node child">
+                            <span class="node-icon">📷</span>
+                            <span class="node-name">Camera3D</span>
+                            <span class="node-tag">(Child of Root)</span>
+                        </div>
+                    </div>
+                    <p
+                        style="margin-top: 10px; font-size: 0.9em; border-top: 1px solid var(--border); padding-top: 10px;">
+                        💡 <strong>Smart Escape:</strong> First <kbd>Esc</kbd> releases mouse, second <kbd>Esc</kbd>
+                        quits the game.
+                    </p>
+                </div>
+
+                <div class="code-block">
+                    <pre><code><span class="keyword">extends</span> <span class="type">CharacterBody3D</span>
+
+<span class="keyword">const</span> SPEED = <span class="number">5.0</span>
+<span class="keyword">const</span> JUMP_VELOCITY = <span class="number">4.5</span>
+<span class="keyword">@export</span> <span class="keyword">var</span> mouse_sensitivity = <span class="number">0.002</span>
+
+<span class="keyword">@onready</span> <span class="keyword">var</span> camera = $Camera3D
+
+<span class="keyword">func</span> <span class="function">_ready</span>():
+    <span class="comment"># Essential for First Person: Capture the mouse</span>
+    Input.mouse_mode = Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>
+
+<span class="keyword">func</span> <span class="function">_unhandled_input</span>(event: InputEvent) -> <span class="type">void</span>:
+    <span class="comment"># Click to capture mouse</span>
+    <span class="keyword">if</span> event <span class="keyword">is</span> <span class="type">InputEventMouseButton</span>:
+        Input.mouse_mode = Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>
+
+    <span class="comment"># Mouse Look Logic</span>
+    <span class="keyword">if</span> event <span class="keyword">is</span> <span class="type">InputEventMouseMotion</span> <span class="keyword">and</span> Input.mouse_mode == Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>:
+        <span class="function">rotate_y</span>(-event.relative.x * mouse_sensitivity)
+        camera.<span class="function">rotate_x</span>(-event.relative.y * mouse_sensitivity)
+        camera.rotation.x = <span class="function">clamp</span>(camera.rotation.x, <span class="function">deg_to_rad</span>(<span class="number">-89</span>), <span class="function">deg_to_rad</span>(<span class="number">89</span>))
+    
+    <span class="comment"># Smart Escape: Release mouse first, then Quit</span>
+    <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"ui_cancel"</span>):
+        <span class="keyword">if</span> Input.mouse_mode == Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>:
+            Input.mouse_mode = Input.<span class="keyword">MOUSE_MODE_VISIBLE</span>
+        <span class="keyword">else</span>:
+            <span class="function">get_tree</span>().<span class="function">quit</span>()
+
+<span class="keyword">func</span> <span class="function">_physics_process</span>(delta: <span class="type">float</span>) -> <span class="type">void</span>:
+    <span class="comment"># Add gravity (Godot 4.3+ style)</span>
+    <span class="keyword">if</span> <span class="keyword">not</span> <span class="function">is_on_floor</span>():
+        velocity += <span class="function">get_gravity</span>() * delta
+
+    <span class="comment"># Handle Jump</span>
+    <span class="keyword">if</span> Input.<span class="function">is_action_just_pressed</span>(<span class="string">"ui_accept"</span>) <span class="keyword">and</span> <span class="function">is_on_floor</span>():
+        velocity.y = JUMP_VELOCITY
+
+    <span class="comment"># Get direction input (WASD/Arrows)</span>
+    <span class="keyword">var</span> input_dir := Input.<span class="function">get_vector</span>(<span class="string">"ui_left"</span>, <span class="string">"ui_right"</span>, <span class="string">"ui_up"</span>, <span class="string">"ui_down"</span>)
+    <span class="keyword">var</span> direction := (transform.basis * <span class="function">Vector3</span>(input_dir.x, <span class="number">0</span>, input_dir.y)).<span class="function">normalized</span>()
+    
+    <span class="keyword">if</span> direction:
+        velocity.x = direction.x * SPEED
+        velocity.z = direction.z * SPEED
+    <span class="keyword">else</span>:
+        velocity.x = <span class="function">move_toward</span>(velocity.x, <span class="number">0</span>, SPEED)
+        velocity.z = <span class="function">move_toward</span>(velocity.z, <span class="number">0</span>, SPEED)
+
+    <span class="function">move_and_slide</span>()</code></pre>
+                </div>
+
+                <h3>Change Scene Button (Button)</h3>
+                <div class="code-block">
+                    <pre><code><span class="keyword">extends</span> <span class="type">Button</span>
+
+<span class="keyword">@export</span> <span class="keyword">var</span> target_scene: <span class="type">PackedScene</span>
+
+<span class="keyword">func</span> <span class="function">_pressed</span>() -> <span class="type">void</span>:
+    <span class="function">get_tree</span>().<span class="function">change_scene_to_packed</span>(target_scene)</code></pre>
+                </div>
+
+                <h3>Exit Game Button (Button)</h3>
+                <div class="code-block">
+                    <pre><code><span class="keyword">extends</span> <span class="type">Button</span>
+
+<span class="keyword">func</span> <span class="function">_pressed</span>() -> <span class="type">void</span>:
+    <span class="function">get_tree</span>().<span class="function">quit</span>()</code></pre>
+                </div>
+
+                <h3>Instant Quit (Escape)</h3>
+                <p style="margin-bottom: 10px;">Exits the game immediately when <kbd>Esc</kbd> is pressed.</p>
+                <div class="code-block">
+                    <pre><code><span class="keyword">func</span> <span class="function">_input</span>(event: InputEvent) -> <span class="type">void</span>:
+    <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"ui_cancel"</span>):
+        <span class="function">get_tree</span>().<span class="function">quit</span>()</code></pre>
+                </div>
+
+                <h3>Smart Quit (FPS Style)</h3>
+                <p style="margin-bottom: 10px;">1st <kbd>Esc</kbd>: Release mouse. 2nd <kbd>Esc</kbd>: Quit game.</p>
+                <div class="code-block">
+                    <pre><code><span class="keyword">func</span> <span class="function">_input</span>(event: InputEvent) -> <span class="type">void</span>:
+    <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"ui_cancel"</span>):
+        <span class="keyword">if</span> Input.mouse_mode == Input.<span class="keyword">MOUSE_MODE_CAPTURED</span>:
+            Input.mouse_mode = Input.<span class="keyword">MOUSE_MODE_VISIBLE</span>
+        <span class="keyword">else</span>:
+            <span class="function">get_tree</span>().<span class="function">quit</span>()</code></pre>
                 </div>
             </div>
 
