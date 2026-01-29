@@ -442,6 +442,18 @@
             opacity: 0.9;
         }
 
+        .toc-parent {
+            font-weight: 700;
+            color: var(--text-primary) !important;
+            margin-top: 15px;
+            font-size: 1em;
+            letter-spacing: 0.02em;
+        }
+
+        .toc-item:first-child .toc-parent {
+            margin-top: 5px;
+        }
+
 
 
         /* Copy Button */
@@ -2327,7 +2339,7 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
                     h2Item.className = 'toc-item';
                     const h2Link = document.createElement('a');
                     h2Link.href = '#' + sectionId;
-                    h2Link.className = 'toc-link';
+                    h2Link.className = 'toc-link toc-parent';
                     h2Link.textContent = h2.textContent;
 
                     // Click handler for smooth scroll offset
