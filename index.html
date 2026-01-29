@@ -483,16 +483,27 @@
 <span class="keyword">var</span> node_ref: <span class="type">Node3D</span> = <span class="keyword">null</span></code></pre>
                 </div>
 
-                <h3>Export Variables (visible in Inspector)</h3>
+                <h3>Advanced Exports & Inspector Organization</h3>
                 <div class="code-block">
-                    <pre><code><span class="keyword">@export</span> <span class="keyword">var</span> max_speed: <span class="type">float</span> = <span class="number">200.0</span>
-<span class="keyword">@export_range</span>(<span class="number">0</span>, <span class="number">100</span>) <span class="keyword">var</span> volume: <span class="type">int</span> = <span class="number">50</span>
-<span class="keyword">@export_enum</span>(<span class="string">"Walk"</span>, <span class="string">"Run"</span>, <span class="string">"Sprint"</span>) <span class="keyword">var</span> movement_type: <span class="type">String</span>
-<span class="keyword">@export</span> <span class="keyword">var</span> texture: <span class="type">Texture2D</span>
-<span class="keyword">@export</span> <span class="keyword">var</span> scene: <span class="type">PackedScene</span>
-<span class="keyword">@export_group</span>(<span class="string">"Combat"</span>)
-<span class="keyword">@export</span> <span class="keyword">var</span> damage: <span class="type">int</span> = <span class="number">10</span>
-<span class="keyword">@export</span> <span class="keyword">var</span> attack_speed: <span class="type">float</span> = <span class="number">1.0</span></code></pre>
+                    <pre><code><span class="comment"># Basic Exports</span>
+<span class="keyword">@export</span> <span class="keyword">var</span> number: <span class="type">int</span> = <span class="number">5</span>
+<span class="keyword">@export</span> <span class="keyword">var</span> text: <span class="type">String</span> = <span class="string">"Hello"</span>
+
+<span class="comment"># Organization (Godot 4+)</span>
+<span class="keyword">@export_category</span>(<span class="string">"Player Stats"</span>)  <span class="comment"># Main separator</span>
+<span class="keyword">@export_group</span>(<span class="string">"Movement"</span>)         <span class="comment"># Collapsible group</span>
+<span class="keyword">@export_range</span>(<span class="number">0</span>, <span class="number">100</span>, <span class="number">0.1</span>) <span class="keyword">var</span> speed: <span class="type">float</span> = <span class="number">10.0</span>
+<span class="keyword">@export_enum</span>(<span class="string">"Idle"</span>, <span class="string">"Walk"</span>, <span class="string">"Run"</span>) <span class="keyword">var</span> state: <span class="type">String</span>
+
+<span class="keyword">@export_subgroup</span>(<span class="string">"Jump Settings"</span>)
+<span class="keyword">@export</span> <span class="keyword">var</span> jump_height: <span class="type">float</span> = <span class="number">5.0</span>
+<span class="keyword">@export</span> <span class="keyword">var</span> air_control: <span class="type">bool</span> = <span class="keyword">true</span>
+
+<span class="comment"># Utilities</span>
+<span class="keyword">@export_file</span>(<span class="string">"*.png"</span>) <span class="keyword">var</span> icon_path: <span class="type">String</span>
+<span class="keyword">@export_dir</span> <span class="keyword">var</span> save_path: <span class="type">String</span>
+<span class="keyword">@export_multiline</span> <span class="keyword">var</span> description: <span class="type">String</span>
+<span class="keyword">@export_flags</span>(<span class="string">"Fire"</span>, <span class="string">"Water"</span>, <span class="string">"Earth"</span>) <span class="keyword">var</span> resistances: <span class="type">int</span></code></pre>
                 </div>
 
                 <div class="use-case">
@@ -1203,6 +1214,23 @@ velocity = input_vector * speed</code></pre>
 <span class="comment"># Check mouse buttons</span>
 <span class="keyword">if</span> Input.<span class="function">is_mouse_button_pressed</span>(MOUSE_BUTTON_LEFT):
     <span class="function">print</span>(<span class="string">"Left mouse button is down"</span>)</code></pre>
+                </div>
+
+                <h3>Input Events (_input vs _unhandled_input)</h3>
+                <div class="code-block">
+                    <pre><code><span class="keyword">func</span> <span class="function">_input</span>(event):
+    <span class="comment"># Captures all input first (even if UI handled it)</span>
+    <span class="comment"># Use sparingly!</span>
+    <span class="keyword">pass</span>
+
+<span class="keyword">func</span> <span class="function">_unhandled_input</span>(event):
+    <span class="comment"># Best for gameplay logic (movement, shooting)</span>
+    <span class="comment"># Only called if UI didn't consume the event</span>
+    <span class="keyword">if</span> event <span class="keyword">is</span> InputEventMouseMotion:
+        <span class="function">rotate_y</span>(-event.relative.x * sensitivity)
+        
+    <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"jump"</span>):
+        <span class="function">jump</span>()</code></pre>
                 </div>
 
                 <div class="use-case">
@@ -2018,7 +2046,14 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
 <span class="function">sqrt</span>(<span class="number">16</span>)                <span class="comment"># 4</span>
 <span class="function">floor</span>(<span class="number">3.7</span>)              <span class="comment"># 3</span>
 <span class="function">ceil</span>(<span class="number">3.2</span>)               <span class="comment"># 4</span>
-<span class="function">round</span>(<span class="number">3.5</span>)              <span class="comment"># 4</span></code></pre>
+<span class="function">round</span>(<span class="number">3.5</span>)              <span class="comment"># 4</span>
+
+<span class="comment"># Debugging</span>
+<span class="function">print_rich</span>(<span class="string">"[color=red]Error![/color]"</span>)
+<span class="function">push_error</span>(<span class="string">"Critical failure"</span>)
+<span class="function">push_warning</span>(<span class="string">"Missing texture"</span>)
+<span class="function">assert</span>(health > <span class="number">0</span>, <span class="string">"Player is dead!"</span>)
+<span class="function">print_stack</span>()</code></pre>
                 </div>
             </div>
 
