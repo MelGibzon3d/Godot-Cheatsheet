@@ -735,17 +735,17 @@
 <span class="keyword">var</span> floating: <span class="type">float</span> = <span class="number">3.14</span>
 <span class="keyword">var</span> text: <span class="type">String</span> = <span class="string">"Hello"</span>
 <span class="keyword">var</span> flag: <span class="type">bool</span> = <span class="keyword">true</span>
+<span class="keyword">var</span> tint: <span class="type">Color</span> = Color.<span class="keyword">RED</span>
 <span class="keyword">var</span> nothing = <span class="keyword">null</span>
 
-<span class="comment"># Godot 3D-specific types</span>
+<span class="comment"># Godot Engine Types</span>
 <span class="keyword">var</span> position: <span class="type">Vector3</span> = <span class="function">Vector3</span>(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>)
-<span class="keyword">var</span> rotation: <span class="type">Vector3</span> = <span class="function">Vector3</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+<span class="keyword">var</span> rotation: <span class="type">Vector3</span>
 <span class="keyword">var</span> direction: <span class="type">Vector3</span> = Vector3.<span class="keyword">FORWARD</span>
-<span class="keyword">var</span> transform: <span class="type">Transform3D</span> = Transform3D.<span class="keyword">IDENTITY</span>
-<span class="keyword">var</span> basis: <span class="type">Basis</span> = Basis.<span class="keyword">IDENTITY</span>
-<span class="keyword">var</span> quaternion: <span class="type">Quaternion</span> = Quaternion.<span class="keyword">IDENTITY</span>
-<span class="keyword">var</span> color: <span class="type">Color</span> = Color.<span class="keyword">RED</span>
-<span class="keyword">var</span> node_ref: <span class="type">Node3D</span> = <span class="keyword">null</span></code></pre>
+<span class="keyword">var</span> transform: <span class="type">Transform3D</span>
+<span class="keyword">var</span> basis: <span class="type">Basis</span>
+<span class="keyword">var</span> quaternion: <span class="type">Quaternion</span>
+<span class="keyword">var</span> node_ref: <span class="type">Node</span> = <span class="keyword">null</span></code></pre>
                 </div>
 
                 <h3>Advanced Exports & Inspector Organization</h3>
@@ -1692,7 +1692,7 @@ GameManager.<span class="function">add_score</span>(<span class="number">10</spa
 <span class="keyword">var</span> quat2 = Quaternion(Vector3.UP, <span class="function">deg_to_rad</span>(<span class="number">45</span>))
 
 <span class="comment"># Smooth rotation interpolation</span>
-<span class="keyword">var</span> current_rot: <span class="type">Quaternion</span> = Quaternion.<span class="keyword">IDENTITY</span>
+<span class="keyword">var</span> current_rot: <span class="type">Quaternion</span>
 <span class="keyword">var</span> target_rot: <span class="type">Quaternion</span>
 current_rot = current_rot.<span class="function">slerp</span>(target_rot, delta * <span class="number">5.0</span>)
 
