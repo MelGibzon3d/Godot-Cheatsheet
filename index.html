@@ -1586,7 +1586,7 @@ GameManager.<span class="function">add_score</span>(<span class="number">10</spa
                 <div class="code-block">
                     <pre><code><span class="keyword">func</span> <span class="function">fade_out</span>():
     <span class="keyword">var</span> tween = <span class="function">create_tween</span>()
-    tween.<span class="function">tween_property</span>($MeshInstance3D, <span class="string">"transparency"</span>, <span class="number">1.0</span>, <span class="number">1.0</span>)
+    tween.<span class="function">tween_property</span>($Sprite2D, <span class="string">"modulate:a"</span>, <span class="number">0.0</span>, <span class="number">1.0</span>)
     <span class="keyword">await</span> tween.finished
     <span class="function">queue_free</span>()
 
