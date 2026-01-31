@@ -1592,9 +1592,9 @@ GameManager.<span class="function">add_score</span>(<span class="number">10</spa
 
 <span class="keyword">func</span> <span class="function">move_to_position</span>(target_pos: <span class="type">Vector3</span>):
     <span class="keyword">var</span> tween = <span class="function">create_tween</span>()
-    tween.<span class="function">tween_property</span>(<span class="keyword">self</span>, <span class="string">"position"</span>, target_pos, <span class="number">1.0</span>)
     tween.<span class="function">set_trans</span>(Tween.TRANS_ELASTIC)
-    tween.<span class="function">set_ease</span>(Tween.EASE_OUT)</code></pre>
+    tween.<span class="function">set_ease</span>(Tween.EASE_OUT)
+    tween.<span class="function">tween_property</span>(<span class="keyword">self</span>, <span class="string">"position"</span>, target_pos, <span class="number">1.0</span>)</code></pre>
                 </div>
 
                 <h3>Random Numbers</h3>
