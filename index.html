@@ -2507,6 +2507,43 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
             <span class="function">get_tree</span>().<span class="function">quit</span>()</code></pre>
                 </div>
 
+                <h3>Pause Menu (Global Script/Scene)</h3>
+                <div class="info-box">
+                    <strong>Setup Tutorial:</strong>
+                    <p>Create a UI node named <span class="inline-code">pause_menu</span> and add it to a group called
+                        <strong>"pause_menu"</strong>. The script will automatically find it and call its
+                        <code>show_menu()</code> and <code>hide_menu()</code> functions.
+                    </p>
+                </div>
+
+                <div class="code-block">
+                    <pre><code><span class="keyword">var</span> is_game_paused = <span class="keyword">false</span>
+
+<span class="keyword">func</span> <span class="function">pause_game</span>():
+    <span class="function">print</span>(<span class="string">"Pausing game"</span>)
+    is_game_paused = <span class="keyword">true</span>
+    <span class="function">get_tree</span>().paused = <span class="keyword">true</span>
+    <span class="keyword">var</span> pause_menu = <span class="function">get_tree</span>().<span class="function">get_first_node_in_group</span>(<span class="string">"pause_menu"</span>)
+    <span class="keyword">if</span> pause_menu:
+        pause_menu.<span class="function">show_menu</span>()
+
+<span class="keyword">func</span> <span class="function">unpause_game</span>():
+    <span class="function">print</span>(<span class="string">"Unpausing game"</span>)
+    is_game_paused = <span class="keyword">false</span>
+    <span class="function">get_tree</span>().paused = <span class="keyword">false</span>
+    <span class="keyword">var</span> pause_menu = <span class="function">get_tree</span>().<span class="function">get_first_node_in_group</span>(<span class="string">"pause_menu"</span>)
+    <span class="keyword">if</span> pause_menu:
+        pause_menu.<span class="function">hide_menu</span>()
+
+<span class="keyword">func</span> <span class="function">_input</span>(event):
+    <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"pause"</span>):
+        <span class="keyword">if</span> is_game_paused:
+            <span class="function">unpause_game</span>()
+        <span class="keyword">else</span>:
+            <span class="function">pause_game</span>()
+        <span class="function">get_viewport</span>().<span class="function">set_input_as_handled</span>()</code></pre>
+                </div>
+
                 <h3>Foliage Wind Shader (Spatial)</h3>
                 <div class="info-box">
                     <strong>Texture Setup Required:</strong>
