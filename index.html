@@ -2509,19 +2509,11 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
 
                 <h3>Pause Menu (Global Script/Scene)</h3>
                 <div class="info-box">
-                    <strong>Setup Tutorial:</strong>
-                    <ul>
-                        <li><strong>Create Node</strong>: Create your UI (e.g., CanvasLayer) and name it
-                            <code>pause_menu</code>.
-                        </li>
-                        <li><strong>Add to Group</strong>: Select the node &rarr; <strong>Node tab</strong> (next to
-                            Inspector) &rarr; <strong>Groups</strong> &rarr; type <span
-                                class="inline-code">pause_menu</span> &rarr; Click <strong>Add</strong>.</li>
-                        <li><strong>Process Mode</strong>: In Inspector &rarr; <strong>Process</strong> &rarr;
-                            <strong>Mode</strong>: Set to <strong>Always</strong> (so the menu works while the game is
-                            paused).
-                        </li>
-                    </ul>
+                    <strong>Setup</strong>: Name your UI node <code>pause_menu</code>, add it to the
+                    <strong>"pause_menu"</strong> group, and set <strong>Process Mode</strong> to
+                    <strong>Always</strong>.
+                    <img src="images/pause_group.png" alt="Pause Menu Setup"
+                        style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid var(--border);">
                     <p>The script will automatically find this node and call its <code>show_menu()</code> and
                         <code>hide_menu()</code> functions.
                     </p>
