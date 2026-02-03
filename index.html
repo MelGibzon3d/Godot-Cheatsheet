@@ -2510,14 +2510,25 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
                 <h3>Pause Menu (Global Script/Scene)</h3>
                 <div class="info-box">
                     <strong>Setup Tutorial:</strong>
-                    <p>Create a UI node named <span class="inline-code">pause_menu</span> and add it to a group called
-                        <strong>"pause_menu"</strong>. The script will automatically find it and call its
-                        <code>show_menu()</code> and <code>hide_menu()</code> functions.
+                    <ul>
+                        <li><strong>Create Node</strong>: Create your UI (e.g., CanvasLayer) and name it
+                            <code>pause_menu</code>.
+                        </li>
+                        <li><strong>Add to Group</strong>: Select the node &rarr; <strong>Node tab</strong> (next to
+                            Inspector) &rarr; <strong>Groups</strong> &rarr; type <span
+                                class="inline-code">pause_menu</span> &rarr; Click <strong>Add</strong>.</li>
+                        <li><strong>Process Mode</strong>: In Inspector &rarr; <strong>Process</strong> &rarr;
+                            <strong>Mode</strong>: Set to <strong>Always</strong> (so the menu works while the game is
+                            paused).
+                        </li>
+                    </ul>
+                    <p>The script will automatically find this node and call its <code>show_menu()</code> and
+                        <code>hide_menu()</code> functions.
                     </p>
                 </div>
 
                 <div class="code-block">
-                    <pre><code><span class="keyword">var</span> is_game_paused = <span class="keyword">false</span>
+                    <pre><code><span class="keyword">var</span> is_game_paused: <span class="type">bool</span> = <span class="keyword">false</span>
 
 <span class="keyword">func</span> <span class="function">pause_game</span>():
     <span class="function">print</span>(<span class="string">"Pausing game"</span>)
