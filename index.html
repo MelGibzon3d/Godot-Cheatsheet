@@ -2619,6 +2619,103 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
     }
 }</code></pre>
                 </div>
+
+                <h3>Fog Shader (Spatial)</h3>
+                <div class="info-box">
+                    <strong>Texture Setup Required:</strong>
+                    <ul>
+                        <li><span class="inline-code">Smoke Texture</span>: Use <span
+                                class="inline-code">melFog_mask.png</span> as the fog mask texture.</li>
+                        <li><span class="inline-code">Noise Texture</span>: Create a <span
+                                class="inline-code">NoiseTexture2D</span>.</li>
+                        <li>Inside NoiseTexture settings: Set <span class="inline-code">Seamless</span> to On.</li>
+                        <li>Inside FastNoiseLite settings: Set <span class="inline-code">Frequency</span> to ~0.02.</li>
+                    </ul>
+                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 120px;">
+                            <p style="text-align: center; font-size: 0.9em; margin-bottom: 5px;">Mask 1 (Click)</p>
+                            <a href="images/melFog_mask.png" download="melFog_mask.png">
+                                <img src="images/melFog_mask.png" alt="Fog Mask 1"
+                                    style="width: 100%; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; aspect-ratio: 1/1; object-fit: cover;">
+                            </a>
+                        </div>
+                        <div style="flex: 1; min-width: 120px;">
+                            <p style="text-align: center; font-size: 0.9em; margin-bottom: 5px;">Mask 2 (Click)</p>
+                            <a href="images/melFog_mask2.png" download="melFog_mask2.png">
+                                <img src="images/melFog_mask2.png" alt="Fog Mask 2"
+                                    style="width: 100%; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; aspect-ratio: 1/1; object-fit: cover;">
+                            </a>
+                        </div>
+                        <div style="flex: 1; min-width: 120px;">
+                            <p style="text-align: center; font-size: 0.9em; margin-bottom: 5px;">Mask 3 (Click)</p>
+                            <a href="images/melFog_mask3.png" download="melFog_mask3.png">
+                                <img src="images/melFog_mask3.png" alt="Fog Mask 3"
+                                    style="width: 100%; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; aspect-ratio: 1/1; object-fit: cover;">
+                            </a>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <p style="text-align: center; font-size: 0.9em; margin-bottom: 5px;">Example Settings</p>
+                        <img src="images/Example_Settings.png" alt="Example Settings"
+                            style="width: 100%; border-radius: 8px; border: 1px solid var(--border); object-fit: contain; background: #000;">
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <p style="text-align: center; font-size: 0.9em; margin-bottom: 5px;">Video Preview</p>
+                        <video controls loop muted
+                            style="width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+                            <source src="images/example_fog.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+
+                <div class="code-block" data-lang="glsl">
+                    <pre><code><span class="keyword">shader_type</span> spatial;
+<span class="keyword">render_mode</span> blend_mix, depth_draw_opaque, cull_disabled;
+
+<span class="keyword">uniform</span> <span class="type">sampler2D</span> smoke_texture : filter_linear_mipmap, repeat_disable;
+<span class="keyword">uniform</span> <span class="type">sampler2D</span> noise_texture : filter_linear_mipmap, repeat_enable;
+
+<span class="comment">// Color tint</span>
+<span class="keyword">uniform</span> <span class="type">vec4</span> albedo_tint : source_color = <span class="function">vec4</span>(<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>);
+<span class="keyword">uniform</span> <span class="type">float</span> emission_strength : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">20.0</span>) = <span class="number">2.0</span>;
+<span class="keyword">uniform</span> <span class="type">float</span> overall_alpha : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">2.0</span>) = <span class="number">1.0</span>;
+
+<span class="comment">// Noise influence</span>
+<span class="keyword">uniform</span> <span class="type">float</span> noise_influence : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">4.0</span>) = <span class="number">0.8</span>;
+
+<span class="comment">// Layer 1</span>
+<span class="keyword">uniform</span> <span class="type">vec2</span> scale_1 = <span class="function">vec2</span>(<span class="number">2.0</span>, <span class="number">2.0</span>);
+<span class="keyword">uniform</span> <span class="type">vec2</span> speed_1 = <span class="function">vec2</span>(<span class="number">0.04</span>, <span class="number">0.01</span>);
+
+<span class="comment">// Layer 2</span>
+<span class="keyword">uniform</span> <span class="type">vec2</span> scale_2 = <span class="function">vec2</span>(<span class="number">4.8</span>, <span class="number">4.8</span>);
+<span class="keyword">uniform</span> <span class="type">vec2</span> speed_2 = <span class="function">vec2</span>(<span class="number">-0.025</span>, <span class="number">0.035</span>);
+
+<span class="keyword">uniform</span> <span class="type">float</span> layer_mix : <span class="function">hint_range</span>(<span class="number">0.0</span>, <span class="number">1.0</span>) = <span class="number">0.55</span>;
+
+<span class="keyword">void</span> <span class="function">fragment</span>() {
+    <span class="type">vec4</span> smoke = <span class="function">texture</span>(smoke_texture, UV);
+    
+    <span class="comment">// Scroll the noise layers</span>
+    <span class="type">vec2</span> uv_1 = UV * scale_1 + speed_1 * TIME;
+    <span class="type">vec2</span> uv_2 = UV * scale_2 + speed_2 * TIME;
+    
+    <span class="type">float</span> noise_a = <span class="function">texture</span>(noise_texture, uv_1).r;
+    <span class="type">float</span> noise_b = <span class="function">texture</span>(noise_texture, uv_2).r;
+    <span class="type">float</span> final_noise = <span class="function">mix</span>(noise_a, noise_b, layer_mix);
+    
+    <span class="comment">// Safe noise modulation for alpha</span>
+    <span class="type">float</span> final_alpha = smoke.a * (<span class="number">1.0</span> - noise_influence * (<span class="number">1.0</span> - final_noise));
+    final_alpha = <span class="function">max</span>(final_alpha, <span class="number">0.0</span>);
+    final_alpha *= overall_alpha;
+    
+    ALBEDO = albedo_tint.rgb;
+    ALPHA = final_alpha;
+    
+    EMISSION = albedo_tint.rgb * emission_strength * final_noise;
+}</code></pre>
+                </div>
             </div>
 
             <div class="section">
