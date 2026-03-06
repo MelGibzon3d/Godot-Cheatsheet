@@ -806,6 +806,51 @@
             </div>
 
             <div class="section">
+                <h2>String Types & Node Paths</h2>
+
+                <h3>StringName (&amp;)</h3>
+                <div class="info-box">
+                    <strong>Optimized String</strong>
+                    <p>Faster for comparisons and Dictionary keys. Slightly slower to create, but better for frequent
+                        lookups like Input actions or Signals.</p>
+                </div>
+                <div class="code-block">
+                    <pre><code><span class="keyword">if</span> Input.<span class="function">is_action_just_pressed</span>(&amp;<span class="string">"jump"</span>):
+    <span class="function">print</span>(<span class="string">"Jumped!"</span>)
+    
+<span class="keyword">var</span> weapons = { &amp;<span class="string">"sword"</span>: <span class="number">10</span>, &amp;<span class="string">"bow"</span>: <span class="number">5</span> }</code></pre>
+                </div>
+
+                <h3>NodePath (^)</h3>
+                <div class="info-box">
+                    <strong>Pre-parsed Path</strong>
+                    <p>Used specifically for pointing to nodes or properties. Since it's pre-parsed, Godot doesn't spend
+                        time parsing the string during execution.</p>
+                </div>
+                <div class="code-block">
+                    <pre><code><span class="keyword">var</span> path = ^<span class="string">"Player/Camera3D"</span>
+<span class="keyword">var</span> camera = <span class="function">get_node</span>(path)
+
+<span class="comment"># Often used with Tweens</span>
+tween.<span class="function">tween_property</span>(<span class="keyword">self</span>, ^<span class="string">"position:x"</span>, <span class="number">10.0</span>, <span class="number">1.0</span>)</code></pre>
+                </div>
+
+                <h3>Scene Unique Nodes (%)</h3>
+                <div class="info-box">
+                    <strong>Global Scene Access</strong>
+                    <p>Right-click a node in the scene tree and select "Access as Unique Name". You can then access it
+                        from ANY script in the scene without needing the full path. Perfect for UI elements.</p>
+                </div>
+                <div class="code-block">
+                    <pre><code><span class="comment"># Instead of full paths that break if you move nodes:</span>
+<span class="keyword">@onready</span> <span class="keyword">var</span> health_bar = $UI/MarginContainer/VBoxContainer/HealthBar
+
+<span class="comment"># Use a unique name (much safer):</span>
+<span class="keyword">@onready</span> <span class="keyword">var</span> health_bar = %HealthBar</code></pre>
+                </div>
+            </div>
+
+            <div class="section">
                 <h2>Functions</h2>
 
                 <h3>Basic Function Syntax</h3>
