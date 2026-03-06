@@ -936,6 +936,11 @@
 <span class="keyword">for</span> item <span class="keyword">in</span> items:
     <span class="function">print</span>(item)
 
+<span class="comment"># Iterate over array in reverse</span>
+<span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(items.<span class="function">size</span>() - <span class="number">1</span>, -<span class="number">1</span>, -<span class="number">1</span>):
+    <span class="keyword">var</span> item = items[i]
+    <span class="function">print</span>(item)
+
 <span class="comment"># While loop</span>
 <span class="keyword">while</span> health > <span class="number">0</span>:
     <span class="function">take_damage</span>(<span class="number">10</span>)
