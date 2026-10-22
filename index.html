@@ -621,40 +621,38 @@
                 <h3>Essential Editor Shortcuts</h3>
                 <div class="code-block">
                     <pre><code><span class="comment"># Viewport Navigation (3D)</span>
-<span class="keyword">Middle Mouse</span>        - Pan camera
-<span class="keyword">Shift + Middle</span>      - Rotate camera
+<span class="keyword">Middle Mouse</span>        - Orbit (rotate) camera
+<span class="keyword">Shift + Middle</span>      - Pan camera
 <span class="keyword">Scroll Wheel</span>        - Zoom in/out
 <span class="keyword">Right Click + WASD</span>  - Fly mode (FPS-style navigation)
 
 <span class="comment"># Object Manipulation</span>
-<span class="keyword">W</span>  - Select mode
-<span class="keyword">E</span>  - Move mode
-<span class="keyword">R</span>  - Rotate mode
-<span class="keyword">S</span>  - Scale mode
+<span class="keyword">Q</span>  - Select mode
+<span class="keyword">W</span>  - Move mode
+<span class="keyword">E</span>  - Rotate mode
+<span class="keyword">R</span>  - Scale mode
 
 <span class="comment"># Modifier Keys for Precision</span>
 <span class="keyword">Ctrl + Drag</span>        - Snap to grid
 <span class="keyword">Shift + Drag</span>       - Precise movement (slower)
-<span class="keyword">Alt + Drag</span>         - Duplicate object while moving
-<span class="keyword">Ctrl + Shift</span>       - Snap + Precise combined
+<span class="keyword">Y</span>                  - Toggle snapping
 
 <span class="comment"># Quick Actions</span>
 <span class="keyword">Ctrl + D</span>           - Duplicate selected nodes
-<span class="keyword">Ctrl + Shift + D</span>   - Duplicate with reparent
+<span class="keyword">Ctrl + Shift + C</span>   - Copy node path (Scene dock)
 <span class="keyword">Delete/Backspace</span>   - Delete selected nodes
 <span class="keyword">F</span>                  - Focus on selected object
-<span class="keyword">Ctrl + A</span>           - Select all
-<span class="keyword">Ctrl + Shift + A</span>   - Deselect all</code></pre>
+<span class="keyword">Ctrl + A</span>           - Add child node (Scene dock)</code></pre>
                 </div>
 
                 <h3>Script Editor Shortcuts</h3>
                 <div class="code-block">
                     <pre><code><span class="comment"># Editing</span>
 <span class="keyword">Ctrl + K</span>           - Toggle comment selection
-<span class="keyword">Ctrl + Shift + I</span>   - Auto-indent selected lines
+<span class="keyword">Ctrl + I</span>         - Auto-indent selected lines
 <span class="keyword">Alt + Up/Down</span>      - Move line(s) up/down
-<span class="keyword">Ctrl + B</span>           - Go to definition
-<span class="keyword">F4</span>                 - Search help (API docs)
+<span class="keyword">Ctrl + Click</span>       - Go to definition (symbol lookup)
+<span class="keyword">F1</span>                 - Search help (API docs)
 
 <span class="comment"># Drag & Drop Workflows</span>
 <span class="keyword">Drag Node -> Script</span>          - Get node path (e.g., $Player/Camera)
@@ -664,7 +662,7 @@
 <span class="keyword">Drag File -> Inspector</span>       - Assign resource to export var</code></pre>
                 </div>
 
-                <h3>Universal IDs (UIDs) - Godot 4.6</h3>
+                <h3>Unique Identifiers (UIDs) - Godot 4.6</h3>
                 <div class="info-box">
                     <strong>What are UIDs?</strong>
                     <p>UIDs are unique identifiers for resources that remain stable even if you rename or move files.
@@ -683,7 +681,7 @@
 <span class="keyword">var</span> scene = <span class="function">load</span>(<span class="string">"uid://abc123def456"</span>)
 
 <span class="comment"># Getting UID of a resource</span>
-<span class="keyword">var</span> uid = ResourceUID.<span class="function">id_to_text</span>(ResourceUID.<span class="function">get_id_path</span>(<span class="string">"res://player.tscn"</span>))
+<span class="keyword">var</span> uid = ResourceUID.<span class="function">id_to_text</span>(ResourceLoader.<span class="function">get_resource_uid</span>(<span class="string">"res://player.tscn"</span>))
 <span class="function">print</span>(<span class="string">"UID: "</span>, uid)</code></pre>
                 </div>
 
@@ -696,14 +694,14 @@
                     </div>
                     <div class="use-case-content">
                         <p>UIDs prevent your game from breaking when you reorganize files. If you move "enemy.tscn" from
-                            "scenes/" to "scenes/enemies/", all UID-based references automatically update.</p>
+                            "scenes/" to "scenes/enemies/", UID-based references keep resolving, because they point to the file's ID rather than its path.</p>
                         <div class="use-case-example">
                             <div class="use-case-example-title">Example: Safe Resource References</div>
                             <div class="code-block">
-                                <pre><code><span class="comment"># ❌ BAD - Hardcoded paths break when files move</span>
+                                <pre><code><span class="comment"># Path-based reference - tied to the file's exact path</span>
 <span class="keyword">const</span> ENEMY = <span class="function">preload</span>(<span class="string">"res://scenes/enemy.tscn"</span>)
 
-<span class="comment"># ✅ GOOD - Use @export, Inspector assigns UID automatically</span>
+<span class="comment"># UID-based - use @export; the Inspector stores a uid:// reference</span>
 <span class="keyword">@export</span> <span class="keyword">var</span> enemy_scene: <span class="type">PackedScene</span>
 
 <span class="keyword">func</span> <span class="function">spawn_enemy</span>():
@@ -723,7 +721,7 @@
 
                 <h3>Basic Variable Declaration</h3>
                 <div class="code-block">
-                    <pre><code><span class="keyword">var</span> health = <span class="number">100</span>                    <span class="comment"># Type inferred as int</span>
+                    <pre><code><span class="keyword">var</span> health = <span class="number">100</span>                    <span class="comment"># Untyped (Variant) - use := to infer int</span>
 <span class="keyword">var</span> speed: <span class="type">float</span> = <span class="number">5.0</span>              <span class="comment"># Explicit type annotation</span>
 <span class="keyword">var</span> player_name := <span class="string">"Hero"</span>           <span class="comment"># Type inferred from value</span>
 <span class="keyword">const</span> MAX_HEALTH = <span class="number">100</span>              <span class="comment"># Constant (cannot be changed)</span></code></pre>
@@ -738,13 +736,13 @@
 <span class="keyword">var</span> tint: <span class="type">Color</span> = Color.<span class="keyword">RED</span>
 <span class="keyword">var</span> nothing = <span class="keyword">null</span>
 
-<span class="comment"># Godot Engine Types</span>
-<span class="keyword">var</span> position: <span class="type">Vector3</span> = <span class="function">Vector3</span>(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>)
-<span class="keyword">var</span> rotation: <span class="type">Vector3</span>
+<span class="comment"># Godot Engine Types (names avoid clashing with Node3D's built-in properties)</span>
+<span class="keyword">var</span> target_position: <span class="type">Vector3</span> = <span class="function">Vector3</span>(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>)
+<span class="keyword">var</span> euler_rotation: <span class="type">Vector3</span>
 <span class="keyword">var</span> direction: <span class="type">Vector3</span> = Vector3.<span class="keyword">FORWARD</span>
-<span class="keyword">var</span> transform: <span class="type">Transform3D</span>
-<span class="keyword">var</span> basis: <span class="type">Basis</span>
-<span class="keyword">var</span> quaternion: <span class="type">Quaternion</span>
+<span class="keyword">var</span> my_transform: <span class="type">Transform3D</span>
+<span class="keyword">var</span> my_basis: <span class="type">Basis</span>
+<span class="keyword">var</span> my_quaternion: <span class="type">Quaternion</span>
 <span class="keyword">var</span> node_ref: <span class="type">Node</span></code></pre>
                 </div>
 
@@ -837,9 +835,9 @@ tween.<span class="function">tween_property</span>(<span class="keyword">self</s
 
                 <h3>Scene Unique Nodes (%)</h3>
                 <div class="info-box">
-                    <strong>Global Scene Access</strong>
+                    <strong>Scene-Wide Access</strong>
                     <p>Right-click a node in the scene tree and select "Access as Unique Name". You can then access it
-                        from ANY script in the scene without needing the full path. Perfect for UI elements.</p>
+                        from any script in that same scene (unique names are scoped to the scene they're saved in) without needing the full path. Perfect for UI elements.</p>
                 </div>
                 <div class="code-block">
                     <pre><code><span class="comment"># Instead of full paths that break if you move nodes:</span>
@@ -881,7 +879,7 @@ tween.<span class="function">tween_property</span>(<span class="keyword">self</s
 
 <span class="keyword">func</span> <span class="function">_physics_process</span>(delta: <span class="type">float</span>):
     <span class="comment"># Called every physics frame (usually 60 FPS)</span>
-    velocity = <span class="function">move_and_slide</span>(velocity)
+    <span class="function">move_and_slide</span>()
 
 <span class="keyword">func</span> <span class="function">_input</span>(event: <span class="type">InputEvent</span>):
     <span class="comment"># Called for every input event</span>
@@ -926,6 +924,9 @@ tween.<span class="function">tween_property</span>(<span class="keyword">self</s
         <span class="function">chase_player</span>(delta)
     <span class="keyword">else</span>:
         <span class="function">patrol</span>(delta)
+
+<span class="keyword">func</span> <span class="function">patrol</span>(_delta: <span class="type">float</span>):
+    <span class="keyword">pass</span>  <span class="comment"># Your patrol logic here</span>
 
 <span class="keyword">func</span> <span class="function">should_chase_player</span>() -> <span class="type">bool</span>:
     <span class="keyword">return</span> player <span class="keyword">and</span> <span class="function">global_position</span>.<span class="function">distance_to</span>(player.global_position) < chase_distance
@@ -1318,7 +1319,7 @@ player[<span class="string">"mana"</span>] = <span class="number">50</span>     
                             <div class="use-case-example-title">Example: Player Health UI System</div>
                             <div class="code-block">
                                 <pre><code><span class="comment"># Player script</span>
-<span class="keyword">signal</span> health_changed(current: <span class="type">int</span>, max: <span class="type">int</span>)
+<span class="keyword">signal</span> health_changed(current: <span class="type">int</span>, max_health: <span class="type">int</span>)
 <span class="keyword">signal</span> died
 
 <span class="keyword">var</span> health = <span class="number">100</span>
@@ -1333,8 +1334,8 @@ player[<span class="string">"mana"</span>] = <span class="number">50</span>     
 <span class="keyword">func</span> <span class="function">_ready</span>():
     player.health_changed.<span class="function">connect</span>(_on_player_health_changed)
 
-<span class="keyword">func</span> <span class="function">_on_player_health_changed</span>(current: <span class="type">int</span>, max: <span class="type">int</span>):
-    $HealthBar.value = (<span class="type">float</span>(current) / max) * <span class="number">100</span></code></pre>
+<span class="keyword">func</span> <span class="function">_on_player_health_changed</span>(current: <span class="type">int</span>, max_health: <span class="type">int</span>):
+    $HealthBar.value = (<span class="type">float</span>(current) / max_health) * <span class="number">100</span></code></pre>
                             </div>
                         </div>
                     </div>
@@ -1422,14 +1423,14 @@ $Weapon.<span class="function">reparent</span>($Player/Hand)</code></pre>
 <span class="keyword">var</span> spawn_points: <span class="type">Array</span>[<span class="type">Node3D</span>] = []
 
 <span class="keyword">func</span> <span class="function">_ready</span>():
-    spawn_points = <span class="function">get_tree</span>().<span class="function">get_nodes_in_group</span>(<span class="string">"spawn_points"</span>)
+    spawn_points.<span class="function">assign</span>(<span class="function">get_tree</span>().<span class="function">get_nodes_in_group</span>(<span class="string">"spawn_points"</span>))
 
 <span class="keyword">func</span> <span class="function">spawn_wave</span>(enemy_count: <span class="type">int</span>):
     <span class="keyword">for</span> i <span class="keyword">in</span> enemy_count:
         <span class="keyword">var</span> enemy = ENEMY_SCENE.<span class="function">instantiate</span>()
         <span class="keyword">var</span> spawn_point = spawn_points.<span class="function">pick_random</span>()
-        enemy.global_position = spawn_point.global_position
         <span class="function">add_child</span>(enemy)
+        enemy.global_position = spawn_point.global_position  <span class="comment"># set after add_child (must be in the tree)</span>
         enemy.<span class="function">add_to_group</span>(<span class="string">"enemies"</span>)</code></pre>
                             </div>
                         </div>
@@ -1520,7 +1521,7 @@ velocity = input_vector * speed</code></pre>
                 <div class="code-block">
                     <pre><code><span class="comment"># Mouse position</span>
 <span class="keyword">var</span> mouse_pos = <span class="function">get_viewport</span>().<span class="function">get_mouse_position</span>()
-<span class="keyword">var</span> global_mouse_pos = <span class="function">get_global_mouse_position</span>()
+<span class="keyword">var</span> global_mouse_pos = <span class="function">get_global_mouse_position</span>()  <span class="comment"># 2D only - in 3D use camera.project_ray_origin()</span>
 
 <span class="comment"># Check specific keys</span>
 <span class="keyword">if</span> Input.<span class="function">is_key_pressed</span>(KEY_SPACE):
@@ -1542,7 +1543,7 @@ velocity = input_vector * speed</code></pre>
     <span class="comment"># Best for gameplay logic (movement, shooting)</span>
     <span class="comment"># Only called if UI didn't consume the event</span>
     <span class="keyword">if</span> event <span class="keyword">is</span> InputEventMouseMotion:
-        <span class="function">rotate_y</span>(-event.relative.x * sensitivity)
+        <span class="function">rotate_y</span>(-event.relative.x * mouse_sensitivity)
         
     <span class="keyword">if</span> event.<span class="function">is_action_pressed</span>(<span class="string">"jump"</span>):
         <span class="function">jump</span>()</code></pre>
@@ -1686,7 +1687,7 @@ GameManager.<span class="function">add_score</span>(<span class="number">10</spa
     is_boosted = <span class="keyword">true</span>
     speed = boost_speed
     
-    <span class="comment"># Flash effect with tween on material</span>
+    <span class="comment"># Flash effect (needs an override material set on the mesh)</span>
     <span class="keyword">var</span> material = $MeshInstance3D.<span class="function">get_surface_override_material</span>(<span class="number">0</span>)
     <span class="keyword">var</span> tween = <span class="function">create_tween</span>()
     tween.<span class="function">tween_property</span>(material, <span class="string">"albedo_color"</span>, Color.YELLOW, <span class="number">0.2</span>)
@@ -1882,7 +1883,7 @@ transform.basis = transform.basis.<span class="function">rotated</span>(Vector3.
     <span class="keyword">var</span> to = from - cam.global_transform.basis.z * <span class="number">1000</span>
     
     <span class="keyword">var</span> query = PhysicsRayQueryParameters3D.<span class="function">create</span>(from, to)
-    query.collision_mask = <span class="number">0b0110</span>  <span class="comment"># Enemies + Environment</span>
+    query.collision_mask = <span class="number">0b0110</span>  <span class="comment"># Layers 2-3: set to match your Enemies/World layers</span>
     
     <span class="keyword">var</span> hit = space.<span class="function">intersect_ray</span>(query)
     <span class="keyword">if</span> hit:
@@ -1912,7 +1913,7 @@ transform.basis = transform.basis.<span class="function">rotated</span>(Vector3.
     <span class="keyword">if</span> event <span class="keyword">is</span> InputEventMouseMotion:
         <span class="function">rotate_y</span>(-event.relative.x * mouse_sensitivity)
         camera.<span class="function">rotate_x</span>(-event.relative.y * mouse_sensitivity)
-        camera.rotation.x = <span class="function">clamp</span>(camera.rotation.x, <span class="function">deg_to_rad</span>(<span class="number">-90</span>), <span class="function">deg_to_rad</span>(<span class="number">90</span>))</code></pre>
+        camera.rotation.x = <span class="function">clamp</span>(camera.rotation.x, <span class="function">deg_to_rad</span>(<span class="number">-89</span>), <span class="function">deg_to_rad</span>(<span class="number">89</span>))</code></pre>
                 </div>
 
                 <h3>Third-Person Follow Camera</h3>
@@ -1941,9 +1942,10 @@ camera.<span class="function">look_at</span>(target.global_position, Vector3.UP)
 <span class="keyword">var</span> from = camera.<span class="function">project_ray_origin</span>(mouse_pos)
 <span class="keyword">var</span> to = from + camera.<span class="function">project_ray_normal</span>(mouse_pos) * <span class="number">1000</span>
 
-<span class="comment"># Check if point is on screen</span>
+<span class="comment"># Project a world point to screen space</span>
 <span class="keyword">var</span> screen_pos = camera.<span class="function">unproject_position</span>(world_pos)
-<span class="keyword">var</span> is_behind = camera.<span class="function">is_position_behind</span>(world_pos)</code></pre>
+<span class="keyword">var</span> is_behind = camera.<span class="function">is_position_behind</span>(world_pos)
+<span class="keyword">var</span> on_screen = <span class="keyword">not</span> is_behind and <span class="function">get_viewport</span>().<span class="function">get_visible_rect</span>().<span class="function">has_point</span>(screen_pos)</code></pre>
                 </div>
             </div>
 
@@ -1976,8 +1978,8 @@ $MeshInstance3D.material_override = mat</code></pre>
 
                 <h3>Modifying Materials at Runtime</h3>
                 <div class="code-block">
-                    <pre><code><span class="comment"># Get material from mesh</span>
-<span class="keyword">var</span> mat = $MeshInstance3D.<span class="function">get_surface_override_material</span>(<span class="number">0</span>)
+                    <pre><code><span class="comment"># Get the material currently shown (mesh or override)</span>
+<span class="keyword">var</span> mat = $MeshInstance3D.<span class="function">get_active_material</span>(<span class="number">0</span>)
 
 <span class="comment"># Make unique copy to avoid affecting other instances</span>
 mat = mat.<span class="function">duplicate</span>()
@@ -2000,7 +2002,7 @@ mat.albedo_color = Color.GREEN</code></pre>
                             <div class="use-case-example-title">Example: Hit Flash</div>
                             <div class="code-block">
                                 <pre><code><span class="keyword">func</span> <span class="function">flash_damage</span>():
-    <span class="keyword">var</span> mat = $MeshInstance3D.<span class="function">get_surface_override_material</span>(<span class="number">0</span>)
+    <span class="keyword">var</span> mat = $MeshInstance3D.<span class="function">get_surface_override_material</span>(<span class="number">0</span>)  <span class="comment"># null unless an override material is set</span>
     mat.emission_enabled = <span class="keyword">true</span>
     mat.emission = Color.RED
     mat.emission_energy_multiplier = <span class="number">3.0</span>
@@ -2357,11 +2359,11 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
 <span class="function">min</span>(<span class="number">5</span>, <span class="number">10</span>)               <span class="comment"># 5</span>
 <span class="function">max</span>(<span class="number">5</span>, <span class="number">10</span>)               <span class="comment"># 10</span>
 <span class="function">sign</span>(<span class="number">-5</span>)                 <span class="comment"># -1 (returns -1, 0, or 1)</span>
-<span class="function">pow</span>(<span class="number">2</span>, <span class="number">3</span>)                <span class="comment"># 8</span>
-<span class="function">sqrt</span>(<span class="number">16</span>)                <span class="comment"># 4</span>
-<span class="function">floor</span>(<span class="number">3.7</span>)              <span class="comment"># 3</span>
-<span class="function">ceil</span>(<span class="number">3.2</span>)               <span class="comment"># 4</span>
-<span class="function">round</span>(<span class="number">3.5</span>)              <span class="comment"># 4</span>
+<span class="function">pow</span>(<span class="number">2</span>, <span class="number">3</span>)                <span class="comment"># 8.0</span>
+<span class="function">sqrt</span>(<span class="number">16</span>)                <span class="comment"># 4.0</span>
+<span class="function">floor</span>(<span class="number">3.7</span>)              <span class="comment"># 3.0</span>
+<span class="function">ceil</span>(<span class="number">3.2</span>)               <span class="comment"># 4.0</span>
+<span class="function">round</span>(<span class="number">3.5</span>)              <span class="comment"># 4.0</span>
 
 <span class="comment"># Debugging</span>
 <span class="function">print_rich</span>(<span class="string">"[color=red]Error![/color]"</span>)
@@ -2570,7 +2572,9 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
                 </div>
 
                 <div class="code-block">
-                    <pre><code><span class="keyword">var</span> is_game_paused: <span class="type">bool</span> = <span class="keyword">false</span>
+                    <pre><code><span class="comment"># IMPORTANT: the node running this script (e.g. an Autoload) also needs</span>
+<span class="comment"># Process Mode = Always, or _input() stops while paused and you can't unpause.</span>
+<span class="keyword">var</span> is_game_paused: <span class="type">bool</span> = <span class="keyword">false</span>
 
 <span class="keyword">func</span> <span class="function">pause_game</span>():
     <span class="function">print</span>(<span class="string">"Pausing game"</span>)
@@ -2605,7 +2609,7 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
                                 class="inline-code">NoiseTexture2D</span>.</li>
                         <li>Inside NoiseTexture settings: Set <span class="inline-code">Seamless</span> to On.</li>
                         <li>Inside FastNoiseLite settings: Set <span class="inline-code">Frequency</span> to ~0.02 for
-                            smooth clouds.</li>
+                            smooth, slow wind.</li>
                     </ul>
                     <p
                         style="margin-top: 10px; font-size: 0.9em; border-top: 1px solid var(--border); padding-top: 10px;">
@@ -2959,9 +2963,9 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
     <span class="type">float</span> spec = <span class="function">pow</span>(<span class="function">max</span>(<span class="function">dot</span>(<span class="function">normalize</span>(<span class="function">vec3</span>(n, <span class="number">1.0</span>)), halfDir), <span class="number">0.0</span>), <span class="number">32.0</span>);
     out_col += spec * <span class="number">0.5</span> * c.x;
     
-    ALBEDO = out_col * brightness * rain_tint.rgb;
+    ALBEDO = out_col * brightness * <span class="function">mix</span>(<span class="function">vec3</span>(<span class="number">1.0</span>), rain_tint.rgb, tint_strength);
     ALPHA = <span class="function">mix</span>(col.a, <span class="number">1.0</span>, <span class="number">0.6</span>); 
-    EMISSION = <span class="function">mix</span>(<span class="function">vec3</span>(<span class="number">0.0</span>), ALBEDO, <span class="function">clamp</span>(<span class="number">0.0</span>, <span class="number">1.0</span>, brightness -<span class="number">1.0</span>));
+    EMISSION = <span class="function">mix</span>(<span class="function">vec3</span>(<span class="number">0.0</span>), ALBEDO, <span class="function">clamp</span>(brightness - <span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>));
     ROUGHNESS = <span class="number">0.05</span>;
 }</code></pre>
                 </div>
