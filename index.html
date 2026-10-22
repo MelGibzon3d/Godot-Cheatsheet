@@ -2375,6 +2375,703 @@ text.<span class="function">contains</span>(<span class="string">"llo"</span>)  
             </div>
 
             <div class="section">
+<h2>UI &amp; HUD (Control Nodes)</h2>
+
+<h3>Layout: Anchors &amp; Containers</h3>
+
+<div class="info-box">
+<strong>Typical HUD scene tree</strong>
+<ul>
+<li><span class="inline-code">CanvasLayer</span> - draws the HUD on top of the 3D world (higher <span class="inline-code">layer</span> = drawn later)</li>
+<li><span class="inline-code">MarginContainer</span> - padding from the screen edges</li>
+<li><span class="inline-code">VBoxContainer</span> / <span class="inline-code">HBoxContainer</span> / <span class="inline-code">GridContainer</span> - stack children and size them for you</li>
+<li><span class="inline-code">Label</span>, <span class="inline-code">ProgressBar</span>, <span class="inline-code">TextureRect</span>, <span class="inline-code">Button</span> - the actual widgets</li>
+</ul>
+</div>
+
+<div class="code-block">
+<pre><code><span class="comment"># Fill the whole screen (root Control of a menu)</span>
+<span class="function">set_anchors_and_offsets_preset</span>(Control.PRESET_FULL_RECT)
+
+<span class="comment"># Pin a widget to a corner (e.g. score, top-right)</span>
+$ScoreLabel.<span class="function">set_anchors_and_offsets_preset</span>(Control.PRESET_TOP_RIGHT)
+
+<span class="comment"># Inside a container: use size flags, not anchors</span>
+$HealthBar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+$HealthBar.custom_minimum_size = <span class="function">Vector2</span>(<span class="number">200</span>, <span class="number">24</span>)</code></pre>
+</div>
+
+<h3>HUD Script (CanvasLayer)</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># hud.gd - attached to the CanvasLayer root</span>
+<span class="keyword">extends</span> <span class="type">CanvasLayer</span>
+
+<span class="comment"># % = Scene Unique Name (right-click node &gt; Access as Unique Name)</span>
+<span class="keyword">@onready</span> <span class="keyword">var</span> health_bar: <span class="type">ProgressBar</span> = %HealthBar
+<span class="keyword">@onready</span> <span class="keyword">var</span> score_label: <span class="type">Label</span> = %ScoreLabel
+
+<span class="keyword">func</span> <span class="function">set_health</span>(current: int, maximum: int) -&gt; <span class="keyword">void</span>:
+    health_bar.max_value = maximum
+    health_bar.value = current
+
+<span class="keyword">func</span> <span class="function">set_score</span>(points: int) -&gt; <span class="keyword">void</span>:
+    score_label.text = <span class="string">"Score: %d"</span> % points</code></pre>
+</div>
+
+<h3>Buttons, Signals &amp; Focus</h3>
+
+<div class="code-block">
+<pre><code><span class="keyword">extends</span> <span class="type">Control</span>
+
+<span class="keyword">@onready</span> <span class="keyword">var</span> play_button: <span class="type">Button</span> = %PlayButton
+<span class="keyword">@onready</span> <span class="keyword">var</span> quit_button: <span class="type">Button</span> = %QuitButton
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    play_button.pressed.<span class="function">connect</span>(_on_play_pressed)
+    quit_button.pressed.<span class="function">connect</span>(<span class="function">get_tree</span>().quit)
+    play_button.<span class="function">grab_focus</span>()  <span class="comment"># Keyboard/gamepad navigation starts here</span>
+
+<span class="keyword">func</span> <span class="function">_on_play_pressed</span>() -&gt; <span class="keyword">void</span>:
+    <span class="function">get_tree</span>().<span class="function">change_scene_to_file</span>(<span class="string">"res://scenes/main.tscn"</span>)
+
+<span class="comment"># Optional: control where Up/Down moves focus</span>
+<span class="comment"># play_button.focus_neighbor_bottom = quit_button.get_path()</span></code></pre>
+</div>
+
+<div class="info-box">
+<strong>Keyboard &amp; gamepad navigation</strong>
+<ul>
+<li>Built-in actions <span class="inline-code">ui_up</span>, <span class="inline-code">ui_down</span>, <span class="inline-code">ui_left</span>, <span class="inline-code">ui_right</span>, <span class="inline-code">ui_accept</span>, <span class="inline-code">ui_cancel</span> move focus and press buttons automatically.</li>
+<li>Call <span class="inline-code">grab_focus()</span> on the first button whenever a menu opens, or gamepad users see nothing selected.</li>
+</ul>
+</div>
+
+<h3>Mouse Mode &amp; Click-Through</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># Menus: show the cursor. Gameplay (FPS): capture it.</span>
+Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+<span class="comment"># HUD elements that must not block clicks on what's behind them</span>
+$HUD/Panel.mouse_filter = Control.MOUSE_FILTER_IGNORE</code></pre>
+</div>
+
+<h3>Text, Colors &amp; Theme Overrides</h3>
+
+<div class="code-block">
+<pre><code>label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+label.<span class="function">add_theme_font_size_override</span>(<span class="string">"font_size"</span>, <span class="number">32</span>)
+label.<span class="function">add_theme_color_override</span>(<span class="string">"font_color"</span>, Color.RED)
+
+<span class="comment"># Spacing inside a container</span>
+$VBoxContainer.<span class="function">add_theme_constant_override</span>(<span class="string">"separation"</span>, <span class="number">12</span>)
+
+<span class="comment"># Restyle everything at once: assign a Theme resource to the</span>
+<span class="comment"># root Control; all children inherit it.</span>
+$MenuRoot.theme = <span class="function">preload</span>(<span class="string">"res://ui/main_theme.tres"</span>)</code></pre>
+</div>
+
+<div class="use-case">
+<div class="use-case-header">
+<div class="use-case-title">
+<span class="use-case-icon">▶</span>
+💡 Game Dev Use Case: Animated Health Bar
+</div>
+</div>
+<div class="use-case-content">
+<p>Connect the player's health signal straight to the HUD, and tween the bar so damage drains smoothly instead of snapping.</p>
+<div class="use-case-example">
+<div class="use-case-example-title">Example: Player &rarr; HUD</div>
+<div class="code-block">
+<pre><code><span class="comment"># hud.gd - replaces set_health() above</span>
+<span class="keyword">func</span> <span class="function">set_health</span>(current: int, maximum: int) -&gt; <span class="keyword">void</span>:
+    health_bar.max_value = maximum
+    <span class="keyword">var</span> tween = <span class="function">create_tween</span>()
+    tween.<span class="function">tween_property</span>(health_bar, <span class="string">"value"</span>, current, <span class="number">0.25</span>)
+
+<span class="comment"># main.gd - connect once; signal args match set_health(current, max)</span>
+<span class="keyword">@onready</span> <span class="keyword">var</span> player = $Player
+<span class="keyword">@onready</span> <span class="keyword">var</span> hud = $HUD
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    player.health_changed.<span class="function">connect</span>(hud.set_health)</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+<div class="info-box">
+<strong>Common UI gotchas</strong>
+<ul>
+<li>Panels, ColorRects and TextureRects block mouse clicks by default. Set <span class="inline-code">mouse_filter</span> to <span class="inline-code">Ignore</span> on anything non-interactive.</li>
+<li>Children of a Container ignore their own anchors and position - use size flags and minimum size instead.</li>
+<li>Pause menus need Process Mode = <span class="inline-code">Always</span> (see Quick Scripts) or their buttons stop responding while paused.</li>
+<li>HUD drawn behind the world? Check the <span class="inline-code">CanvasLayer</span>'s <span class="inline-code">layer</span> value.</li>
+</ul>
+</div>
+</div>
+
+<div class="section">
+<h2>Debugging &amp; Common Errors</h2>
+
+<h3>Editor Debugging Tools</h3>
+
+<div class="info-box">
+<strong>Where to look when something is wrong</strong>
+<ul>
+<li><strong>Errors tab</strong> (bottom panel): click the first error - it jumps to the exact line. Later errors are often just fallout from the first.</li>
+<li><strong>Breakpoints</strong>: click the gutter next to a line (or write <span class="inline-code">breakpoint</span> in code). The game pauses there and the Debugger shows the stack and every variable.</li>
+<li><strong>Remote scene tree</strong>: while the game runs, switch the Scene dock to <em>Remote</em> to see the live tree and edit node properties on the fly.</li>
+<li><strong>Debug menu</strong>: <em>Visible Collision Shapes</em> and <em>Visible Navigation</em> show what physics and pathfinding actually see.</li>
+<li><strong>Profiler &amp; Monitors</strong> (Debugger panel): find slow functions, and watch FPS, draw calls and object counts.</li>
+</ul>
+</div>
+
+<h3>Print &amp; Assert Helpers</h3>
+
+<div class="code-block">
+<pre><code><span class="function">print</span>(<span class="string">"health = "</span>, health)
+<span class="function">print_debug</span>(<span class="string">"also shows script and line number"</span>)
+<span class="function">print_rich</span>(<span class="string">"[color=yellow]Low ammo[/color]"</span>)
+<span class="function">push_warning</span>(<span class="string">"Missing texture"</span>)           <span class="comment"># Yellow, shown in Errors tab</span>
+<span class="function">push_error</span>(<span class="string">"Spawner has no spawn points"</span>) <span class="comment"># Red, shown in Errors tab</span>
+<span class="function">assert</span>(speed &gt; <span class="number">0</span>, <span class="string">"speed must be positive"</span>)  <span class="comment"># Debug builds only</span>
+
+breakpoint  <span class="comment"># Pauses the game here when run from the editor</span>
+
+<span class="comment"># Print the live scene tree below a node</span>
+<span class="function">get_tree</span>().current_scene.<span class="function">print_tree_pretty</span>()
+
+<span class="comment"># Keep debug-only code out of release builds</span>
+<span class="keyword">if</span> OS.<span class="function">is_debug_build</span>():
+    <span class="function">print</span>(<span class="string">"only in debug"</span>)</code></pre>
+</div>
+
+<h3>Common Errors &amp; Fixes</h3>
+
+<div class="info-box">
+<strong>Null and freed nodes</strong>
+<ul>
+<li><strong>Invalid access to property or key 'x' on a base object of type 'Nil' / Nonexistent function 'x' in base 'Nil'</strong><br>The variable is null: wrong node path (names are case-sensitive), or a plain <span class="inline-code">var x = $Node</span> ran before the node existed.<br><em>Fix:</em> use <span class="inline-code">@onready</span>, check names in the Scene dock, or <span class="inline-code">print(x)</span> to confirm it is null.</li>
+<li><strong>Node not found: 'Path'</strong><br>The path no longer matches the scene tree (node renamed or moved).<br><em>Fix:</em> use a Scene Unique Name (<span class="inline-code">%Name</span>) or an <span class="inline-code">@export var node: Node</span> assigned in the Inspector.</li>
+<li><strong>Nonexistent function 'x' in base 'previously freed'</strong><br>You kept a reference to a node that was freed (enemy died, scene changed).<br><em>Fix:</em> check <span class="inline-code">is_instance_valid(node)</span> before using it, and clear the reference when it dies.</li>
+</ul>
+</div>
+
+<div class="info-box">
+<strong>Timing, signals and physics</strong>
+<ul>
+<li><strong>Condition '!is_inside_tree()' is true</strong><br>Used <span class="inline-code">global_position</span>, <span class="inline-code">global_transform</span> or <span class="inline-code">look_at()</span> on a node that is not in the tree yet.<br><em>Fix:</em> call <span class="inline-code">add_child()</span> first, then set the global position.</li>
+<li><strong>Resumed function 'x()' after await, but class instance is gone</strong><br>A node awaited a timer, then was freed before it finished.<br><em>Fix:</em> await a signal owned by the node itself - a child <span class="inline-code">Timer</span> or <span class="inline-code">create_tween().finished</span> - so it is cleaned up with the node.</li>
+<li><strong>Can't change this state while flushing queries</strong><br>You changed collision shapes, <span class="inline-code">monitoring</span> or similar inside a physics callback such as <span class="inline-code">body_entered</span>.<br><em>Fix:</em> use <span class="inline-code">set_deferred("disabled", true)</span> or <span class="inline-code">call_deferred()</span>.</li>
+<li><strong>Signal 'x' is already connected to given callable</strong><br>Connected the same signal twice (for example once in the editor and once in code).<br><em>Fix:</em> connect it in one place, or guard with <span class="inline-code">is_connected()</span>.</li>
+<li><strong>Trying to assign an array of type "Array[Node]" to a variable of type "Array[Node3D]"</strong><br>Typed arrays do not convert automatically; <span class="inline-code">get_nodes_in_group()</span> returns <span class="inline-code">Array[Node]</span>.<br><em>Fix:</em> use <span class="inline-code">my_array.assign(get_tree().get_nodes_in_group("x"))</span>.</li>
+</ul>
+</div>
+
+<h3>Safe Patterns</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># Reference may have been freed</span>
+<span class="keyword">if</span> <span class="function">is_instance_valid</span>(target):
+    <span class="function">look_at</span>(target.global_position, Vector3.UP)
+
+<span class="comment"># Node must be in the tree before using global_position</span>
+<span class="function">add_child</span>(enemy)
+enemy.global_position = spawn_point.global_position
+
+<span class="comment"># Physics callback: defer state changes</span>
+<span class="keyword">func</span> <span class="function">_on_body_entered</span>(body: <span class="type">Node3D</span>) -&gt; <span class="keyword">void</span>:
+    $CollisionShape3D.<span class="function">set_deferred</span>(<span class="string">"disabled"</span>, <span class="keyword">true</span>)
+
+<span class="comment"># Await something the node owns, so it dies with the node</span>
+<span class="keyword">var</span> tween = <span class="function">create_tween</span>()
+tween.<span class="function">tween_property</span>(<span class="keyword">self</span>, <span class="string">"scale"</span>, Vector3.ZERO, <span class="number">0.3</span>)
+<span class="keyword">await</span> tween.finished
+<span class="function">queue_free</span>()
+
+<span class="comment"># Typed array from a group</span>
+<span class="keyword">var</span> spawns: <span class="type">Array</span>[Node3D] = []
+spawns.<span class="function">assign</span>(<span class="function">get_tree</span>().<span class="function">get_nodes_in_group</span>(<span class="string">"spawn_points"</span>))
+
+<span class="comment"># Connect once</span>
+<span class="keyword">if</span> <span class="keyword">not</span> button.pressed.<span class="function">is_connected</span>(_on_pressed):
+    button.pressed.<span class="function">connect</span>(_on_pressed)</code></pre>
+</div>
+
+<div class="use-case">
+<div class="use-case-header">
+<div class="use-case-title">
+<span class="use-case-icon">▶</span>
+💡 Game Dev Use Case: F3 Debug Overlay
+</div>
+</div>
+<div class="use-case-content">
+<p>A toggleable overlay for FPS and player position. Add it as a CanvasLayer with a Label child named Info, and put your player in the "player" group.</p>
+<div class="use-case-example">
+<div class="use-case-example-title">Example: Debug Overlay</div>
+<div class="code-block">
+<pre><code><span class="comment"># debug_overlay.gd</span>
+<span class="keyword">extends</span> <span class="type">CanvasLayer</span>
+
+<span class="keyword">@onready</span> <span class="keyword">var</span> info: <span class="type">Label</span> = $Info
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    visible = <span class="keyword">false</span>
+    process_mode = Node.PROCESS_MODE_ALWAYS  <span class="comment"># Works while paused</span>
+
+<span class="keyword">func</span> <span class="function">_unhandled_input</span>(event: <span class="type">InputEvent</span>) -&gt; <span class="keyword">void</span>:
+    <span class="keyword">if</span> event <span class="keyword">is</span> InputEventKey <span class="keyword">and</span> event.pressed <span class="keyword">and</span> event.keycode == KEY_F3:
+        visible = <span class="keyword">not</span> visible
+
+<span class="keyword">func</span> <span class="function">_process</span>(_delta: float) -&gt; <span class="keyword">void</span>:
+    <span class="keyword">if</span> <span class="keyword">not</span> visible:
+        <span class="keyword">return</span>
+    info.text = <span class="string">"FPS: %d"</span> % Engine.<span class="function">get_frames_per_second</span>()
+    <span class="keyword">var</span> player = <span class="function">get_tree</span>().<span class="function">get_first_node_in_group</span>(<span class="string">"player"</span>)
+    <span class="keyword">if</span> player:
+        info.text += <span class="string">"\nPos: %s"</span> % player.global_position.<span class="function">snapped</span>(Vector3.ONE * <span class="number">0.1</span>)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<h2>Scene Architecture &amp; Communication</h2>
+
+<h3>Call Down, Signal Up</h3>
+
+<div class="info-box">
+<strong>The rule of thumb</strong>
+<ul>
+<li><strong>Parent &rarr; child:</strong> call methods and set properties directly. The parent owns its children, so it can know about them.</li>
+<li><strong>Child &rarr; parent:</strong> emit a signal. A child should never reach up with <span class="inline-code">get_parent()</span>; it doesn't know who (if anyone) is listening.</li>
+<li><strong>Sibling &rarr; sibling:</strong> let the shared parent connect them.</li>
+<li><strong>Far apart:</strong> use a group or an autoload event bus (below).</li>
+</ul>
+</div>
+
+<div class="code-block">
+<pre><code><span class="comment"># main.gd - the parent wires its children together</span>
+<span class="keyword">extends</span> <span class="type">Node3D</span>
+
+<span class="keyword">@onready</span> <span class="keyword">var</span> player: <span class="type">Player</span> = $Player
+<span class="keyword">@onready</span> <span class="keyword">var</span> hud = $HUD
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    player.health_changed.<span class="function">connect</span>(hud.set_health)
+    player.died.<span class="function">connect</span>(_on_player_died)
+
+<span class="comment"># player.gd - the child only announces what happened</span>
+<span class="keyword">signal</span> <span class="function">health_changed</span>(current: int, maximum: int)
+<span class="keyword">signal</span> died
+
+<span class="keyword">func</span> <span class="function">take_damage</span>(amount: int) -&gt; <span class="keyword">void</span>:
+    health -= amount
+    health_changed.<span class="function">emit</span>(health, max_health)
+    <span class="keyword">if</span> health &lt;= <span class="number">0</span>:
+        died.<span class="function">emit</span>()
+
+<span class="comment"># Avoid: the child reaches up and breaks if the tree changes</span>
+<span class="comment"># get_parent().get_node("HUD").set_health(health)</span></code></pre>
+</div>
+
+<h3>Which Tool for Which Job?</h3>
+
+<div class="info-box">
+<strong>Pick the lightest one that works</strong>
+<ul>
+<li><strong>Signal:</strong> something happened and any number of nodes may care (damage taken, item collected, button pressed).</li>
+<li><strong>Direct call:</strong> you own the node and need a result back (parent calling a child's method).</li>
+<li><strong><span class="inline-code">@export var target: Node3D</span>:</strong> a reference to something elsewhere in the scene, assigned in the Inspector instead of a fragile path.</li>
+<li><strong>Group:</strong> find or broadcast to many unrelated nodes (<span class="inline-code">call_group("enemies", "alert")</span>, <span class="inline-code">get_nodes_in_group()</span>).</li>
+<li><strong>Autoload:</strong> truly global services that outlive scenes (settings, save data, event bus, scene transitions). Not for per-level state.</li>
+</ul>
+</div>
+
+<h3>Event Bus (Autoload)</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># events.gd - add under Project Settings &gt; Globals &gt; Autoload as "Events"</span>
+<span class="keyword">extends</span> <span class="type">Node</span>
+
+<span class="keyword">@warning_ignore</span>(<span class="string">"unused_signal"</span>)  <span class="comment"># Emitted from other scripts</span>
+<span class="keyword">signal</span> <span class="function">enemy_killed</span>(enemy: <span class="type">Node3D</span>, points: int)
+<span class="keyword">@warning_ignore</span>(<span class="string">"unused_signal"</span>)
+<span class="keyword">signal</span> <span class="function">item_collected</span>(item_name: <span class="type">String</span>)
+
+<span class="comment"># Where it happens (any script):</span>
+<span class="type">Events</span>.enemy_killed.<span class="function">emit</span>(<span class="keyword">self</span>, <span class="number">100</span>)
+
+<span class="comment"># Whoever cares (HUD, quests, audio...) listens without knowing the source:</span>
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    <span class="type">Events</span>.enemy_killed.<span class="function">connect</span>(_on_enemy_killed)
+
+<span class="keyword">func</span> <span class="function">_on_enemy_killed</span>(enemy: <span class="type">Node3D</span>, points: int) -&gt; <span class="keyword">void</span>:
+    score += points</code></pre>
+</div>
+
+<div class="info-box">
+<strong>Event bus tips</strong>
+<ul>
+<li>Signals disconnect automatically when the listening node is freed, so you rarely need to clean up.</li>
+<li>Keep the bus for events many systems care about. A signal between a parent and its child does not need to go through it.</li>
+</ul>
+</div>
+
+<h3>Composition Over Inheritance</h3>
+
+<div class="info-box">
+<strong>Small reusable pieces</strong>
+<ul>
+<li>Instead of one deep class tree (Entity &rarr; Enemy &rarr; FlyingEnemy &rarr; ...), build small scenes or nodes that each do one job: a health component, a hitbox, a mover.</li>
+<li>Any entity (player, enemy, crate) gets the behaviour by adding the component as a child.</li>
+</ul>
+</div>
+
+<div class="use-case">
+<div class="use-case-header">
+<div class="use-case-title">
+<span class="use-case-icon">▶</span>
+💡 Game Dev Use Case: Reusable Health Component
+</div>
+</div>
+<div class="use-case-content">
+<p>One component handles health for every entity. Anything that can be damaged just has a HealthComponent child.</p>
+<div class="use-case-example">
+<div class="use-case-example-title">Example: HealthComponent + Bullet</div>
+<div class="code-block">
+<pre><code><span class="comment"># health_component.gd</span>
+<span class="keyword">class_name</span> <span class="type">HealthComponent</span> <span class="keyword">extends</span> <span class="type">Node</span>
+
+<span class="keyword">signal</span> <span class="function">health_changed</span>(current: int, maximum: int)
+<span class="keyword">signal</span> died
+
+<span class="keyword">@export</span> <span class="keyword">var</span> max_health: int = <span class="number">100</span>
+<span class="keyword">var</span> current: int
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    current = max_health  <span class="comment"># Exports are applied before _ready</span>
+
+<span class="keyword">func</span> <span class="function">take_damage</span>(amount: int) -&gt; <span class="keyword">void</span>:
+    current = <span class="function">maxi</span>(current - amount, <span class="number">0</span>)
+    health_changed.<span class="function">emit</span>(current, max_health)
+    <span class="keyword">if</span> current == <span class="number">0</span>:
+        died.<span class="function">emit</span>()
+
+<span class="comment"># enemy.gd - the owner reacts to its own component</span>
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    $HealthComponent.died.<span class="function">connect</span>(queue_free)
+
+<span class="comment"># bullet.gd - works on anything with a HealthComponent child</span>
+<span class="keyword">func</span> <span class="function">_on_body_entered</span>(body: <span class="type">Node3D</span>) -&gt; <span class="keyword">void</span>:
+    <span class="keyword">var</span> health = body.<span class="function">get_node_or_null</span>(<span class="string">"HealthComponent"</span>) <span class="keyword">as</span> <span class="type">HealthComponent</span>
+    <span class="keyword">if</span> health:
+        health.<span class="function">take_damage</span>(<span class="number">25</span>)
+    <span class="function">queue_free</span>()</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+<h3>Instancing Scenes</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># Add projectiles to the level, not to the shooter,</span>
+<span class="comment"># so they don't inherit the shooter's movement</span>
+<span class="keyword">var</span> bullet = bullet_scene.<span class="function">instantiate</span>()
+<span class="function">get_tree</span>().current_scene.<span class="function">add_child</span>(bullet)
+bullet.global_transform = muzzle.global_transform</code></pre>
+</div>
+
+<div class="info-box">
+<strong>Architecture smells</strong>
+<ul>
+<li><span class="inline-code">get_parent().get_parent()</span> chains, or absolute paths like <span class="inline-code">get_node("/root/Main/...")</span>: pass references with <span class="inline-code">@export</span> or signals instead.</li>
+<li>Every scene should run on its own (F6) without crashing. If it needs its parent to exist, expose that dependency as an export.</li>
+<li>Autoloads holding references to level nodes: those go stale on scene change. Check with <span class="inline-code">is_instance_valid()</span> or keep them out of globals.</li>
+<li>A single giant base class that everything inherits from: split it into components.</li>
+</ul>
+</div>
+</div>
+
+<div class="section">
+<h2>Settings &amp; Input Remapping</h2>
+
+<h3>Saving Settings with ConfigFile</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># settings.gd - add as an Autoload named "Settings"</span>
+<span class="keyword">extends</span> <span class="type">Node</span>
+
+<span class="keyword">const</span> PATH = <span class="string">"user://settings.cfg"</span>
+<span class="keyword">var</span> config := ConfigFile.<span class="function">new</span>()
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    config.<span class="function">load</span>(PATH)  <span class="comment"># No file yet? Defaults are used</span>
+    <span class="function">apply_settings</span>()
+
+<span class="keyword">func</span> <span class="function">get_setting</span>(section: <span class="type">String</span>, key: <span class="type">String</span>, default: <span class="type">Variant</span>) -&gt; <span class="type">Variant</span>:
+    <span class="keyword">return</span> config.<span class="function">get_value</span>(section, key, default)
+
+<span class="keyword">func</span> <span class="function">set_setting</span>(section: <span class="type">String</span>, key: <span class="type">String</span>, value: <span class="type">Variant</span>) -&gt; <span class="keyword">void</span>:
+    config.<span class="function">set_value</span>(section, key, value)
+
+<span class="keyword">func</span> <span class="function">save_settings</span>() -&gt; <span class="keyword">void</span>:
+    config.<span class="function">save</span>(PATH)</code></pre>
+</div>
+
+<h3>Applying Audio, Video &amp; Input Settings</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># Also in settings.gd</span>
+<span class="keyword">func</span> <span class="function">apply_settings</span>() -&gt; <span class="keyword">void</span>:
+    <span class="comment"># Audio: store linear 0-1, convert to dB</span>
+    <span class="keyword">var</span> volume: float = <span class="function">get_setting</span>(<span class="string">"audio"</span>, <span class="string">"master"</span>, <span class="number">1.0</span>)
+    <span class="keyword">var</span> bus = AudioServer.<span class="function">get_bus_index</span>(<span class="string">"Master"</span>)
+    AudioServer.<span class="function">set_bus_mute</span>(bus, volume &lt;= <span class="number">0.0</span>)
+    AudioServer.<span class="function">set_bus_volume_db</span>(bus, <span class="function">linear_to_db</span>(<span class="function">maxf</span>(volume, <span class="number">0.0001</span>)))
+
+    <span class="comment"># Window mode</span>
+    <span class="keyword">if</span> <span class="function">get_setting</span>(<span class="string">"video"</span>, <span class="string">"fullscreen"</span>, <span class="keyword">false</span>):
+        <span class="type">DisplayServer</span>.<span class="function">window_set_mode</span>(DisplayServer.WINDOW_MODE_FULLSCREEN)
+    <span class="keyword">else</span>:
+        <span class="type">DisplayServer</span>.<span class="function">window_set_mode</span>(DisplayServer.WINDOW_MODE_WINDOWED)
+
+    <span class="comment"># VSync</span>
+    <span class="keyword">if</span> <span class="function">get_setting</span>(<span class="string">"video"</span>, <span class="string">"vsync"</span>, <span class="keyword">true</span>):
+        <span class="type">DisplayServer</span>.<span class="function">window_set_vsync_mode</span>(DisplayServer.VSYNC_ENABLED)
+    <span class="keyword">else</span>:
+        <span class="type">DisplayServer</span>.<span class="function">window_set_vsync_mode</span>(DisplayServer.VSYNC_DISABLED)
+
+    <span class="comment"># Saved key bindings</span>
+    <span class="keyword">if</span> config.<span class="function">has_section</span>(<span class="string">"input"</span>):
+        <span class="keyword">for</span> action <span class="keyword">in</span> config.<span class="function">get_section_keys</span>(<span class="string">"input"</span>):
+            <span class="function">_set_key</span>(action, config.<span class="function">get_value</span>(<span class="string">"input"</span>, action))</code></pre>
+</div>
+
+<h3>Settings Sliders &amp; Toggles</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># volume_slider.gd - HSlider with min 0, max 1, step 0.01</span>
+<span class="keyword">extends</span> <span class="type">HSlider</span>
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    value = Settings.<span class="function">get_setting</span>(<span class="string">"audio"</span>, <span class="string">"master"</span>, <span class="number">1.0</span>)
+    value_changed.<span class="function">connect</span>(_on_value_changed)
+    drag_ended.<span class="function">connect</span>(_on_drag_ended)
+
+<span class="keyword">func</span> <span class="function">_on_value_changed</span>(new_value: float) -&gt; <span class="keyword">void</span>:
+    <span class="type">Settings</span>.<span class="function">set_setting</span>(<span class="string">"audio"</span>, <span class="string">"master"</span>, new_value)
+    Settings.<span class="function">apply_settings</span>()  <span class="comment"># Live preview while dragging</span>
+
+<span class="keyword">func</span> <span class="function">_on_drag_ended</span>(_changed: bool) -&gt; <span class="keyword">void</span>:
+    <span class="type">Settings</span>.<span class="function">save_settings</span>()   <span class="comment"># Write the file once, not on every tick</span></code></pre>
+</div>
+
+<h3>Rebinding Keys with InputMap</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># Read the current bindings of an action</span>
+<span class="keyword">for</span> event <span class="keyword">in</span> InputMap.<span class="function">action_get_events</span>(<span class="string">"jump"</span>):
+    <span class="function">print</span>(event.<span class="function">as_text</span>())
+
+<span class="comment"># Also in settings.gd: replace the keyboard binding, keep gamepad ones</span>
+<span class="keyword">func</span> <span class="function">rebind_key</span>(action: <span class="type">String</span>, keycode: <span class="type">Key</span>) -&gt; <span class="keyword">void</span>:
+    <span class="function">_set_key</span>(action, keycode)
+    config.<span class="function">set_value</span>(<span class="string">"input"</span>, action, keycode)  <span class="comment"># Save the keycode as an int</span>
+    <span class="function">save_settings</span>()
+
+<span class="keyword">func</span> <span class="function">_set_key</span>(action: <span class="type">String</span>, keycode: <span class="type">Key</span>) -&gt; <span class="keyword">void</span>:
+    <span class="keyword">for</span> e <span class="keyword">in</span> InputMap.<span class="function">action_get_events</span>(action):
+        <span class="keyword">if</span> e <span class="keyword">is</span> InputEventKey:
+            <span class="type">InputMap</span>.<span class="function">action_erase_event</span>(action, e)
+    <span class="keyword">var</span> ev := InputEventKey.<span class="function">new</span>()
+    ev.physical_keycode = keycode
+    InputMap.<span class="function">action_add_event</span>(action, ev)
+
+<span class="keyword">func</span> <span class="function">reset_keys</span>() -&gt; <span class="keyword">void</span>:
+    <span class="type">InputMap</span>.<span class="function">load_from_project_settings</span>()  <span class="comment"># Back to the Project Settings defaults</span>
+    config.<span class="function">erase_section</span>(<span class="string">"input"</span>)
+    <span class="function">save_settings</span>()</code></pre>
+</div>
+
+<div class="use-case">
+<div class="use-case-header">
+<div class="use-case-title">
+<span class="use-case-icon">▶</span>
+💡 Game Dev Use Case: Rebind Button
+</div>
+</div>
+<div class="use-case-content">
+<p>Put one of these in your controls menu per action. Click it, press a key, and the binding changes and is saved. Esc cancels.</p>
+<div class="use-case-example">
+<div class="use-case-example-title">Example: rebind_button.gd</div>
+<div class="code-block">
+<pre><code><span class="keyword">extends</span> <span class="type">Button</span>
+
+<span class="keyword">@export</span> <span class="keyword">var</span> action: <span class="type">String</span> = <span class="string">"jump"</span>
+<span class="keyword">var</span> listening := <span class="keyword">false</span>
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    pressed.<span class="function">connect</span>(_start_listening)
+    <span class="function">_refresh</span>()
+
+<span class="keyword">func</span> <span class="function">_start_listening</span>() -&gt; <span class="keyword">void</span>:
+    listening = <span class="keyword">true</span>
+    text = <span class="string">"Press a key... (Esc to cancel)"</span>
+
+<span class="keyword">func</span> <span class="function">_input</span>(event: <span class="type">InputEvent</span>) -&gt; <span class="keyword">void</span>:
+    <span class="keyword">if</span> <span class="keyword">not</span> listening <span class="keyword">or</span> <span class="keyword">not</span> (event <span class="keyword">is</span> InputEventKey <span class="keyword">and</span> event.pressed <span class="keyword">and</span> <span class="keyword">not</span> event.echo):
+        <span class="keyword">return</span>
+    <span class="function">get_viewport</span>().<span class="function">set_input_as_handled</span>()
+    listening = <span class="keyword">false</span>
+    <span class="keyword">if</span> event.keycode != KEY_ESCAPE:
+        <span class="type">Settings</span>.<span class="function">rebind_key</span>(action, event.physical_keycode)
+    <span class="function">_refresh</span>()
+
+<span class="keyword">func</span> <span class="function">_refresh</span>() -&gt; <span class="keyword">void</span>:
+    text = <span class="string">"Unbound"</span>
+    <span class="keyword">for</span> e <span class="keyword">in</span> InputMap.<span class="function">action_get_events</span>(action):
+        <span class="keyword">if</span> e <span class="keyword">is</span> InputEventKey:
+            text = e.<span class="function">as_text_physical_keycode</span>()</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+<div class="info-box">
+<strong>Settings gotchas</strong>
+<ul>
+<li>Changes made to <span class="inline-code">InputMap</span> at runtime are lost when the game closes. That is why the keycodes are saved to the config file and re-applied at startup.</li>
+<li>Save to <span class="inline-code">user://</span>, never <span class="inline-code">res://</span>: the project folder is read-only in an exported game.</li>
+<li>Store volume as a linear 0&ndash;1 value and convert with <span class="inline-code">linear_to_db()</span>; sliders feel wrong when mapped straight to decibels.</li>
+<li>Only keyboard keys are saved here. Gamepad rebinding needs the device and button index stored the same way.</li>
+<li>Warn or swap when two actions end up on the same key, or the player can lock themselves out of a control.</li>
+</ul>
+</div>
+</div>
+
+<div class="section">
+<h2>Particles &amp; VFX</h2>
+
+<h3>GPUParticles3D Essentials</h3>
+
+<div class="info-box">
+<strong>The properties you will touch most</strong>
+<ul>
+<li><span class="inline-code">emitting</span> - start or stop. <span class="inline-code">one_shot</span> - emit once, then stop (impacts, explosions).</li>
+<li><span class="inline-code">explosiveness</span> - 0 = steady stream, 1 = everything at once (a burst). <span class="inline-code">amount</span> and <span class="inline-code">lifetime</span> - how many particles and how long each lives.</li>
+<li><span class="inline-code">process_material</span> - a <span class="inline-code">ParticleProcessMaterial</span> that controls <em>movement</em>: direction, spread, velocity, gravity, scale, color over lifetime.</li>
+<li><span class="inline-code">draw_pass_1</span> - the mesh each particle <em>looks like</em>. With no mesh, nothing is visible.</li>
+<li><span class="inline-code">local_coords</span> - off (default): particles stay in the world when the emitter moves. On: they follow the emitter.</li>
+</ul>
+</div>
+
+<h3>Build a Burst in Code</h3>
+
+<div class="code-block">
+<pre><code><span class="keyword">func</span> <span class="function">make_spark_burst</span>() -&gt; <span class="type">GPUParticles3D</span>:
+    <span class="comment"># What each particle looks like: a small camera-facing quad</span>
+    <span class="keyword">var</span> mat := StandardMaterial3D.<span class="function">new</span>()
+    mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.vertex_color_use_as_albedo = <span class="keyword">true</span>  <span class="comment"># Needed for the color fade</span>
+    mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    <span class="keyword">var</span> mesh := QuadMesh.<span class="function">new</span>()
+    mesh.size = <span class="function">Vector2</span>(<span class="number">0.1</span>, <span class="number">0.1</span>)
+    mesh.material = mat
+
+    <span class="comment"># How they move</span>
+    <span class="keyword">var</span> pm := ParticleProcessMaterial.<span class="function">new</span>()
+    pm.direction = <span class="function">Vector3</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>)
+    pm.spread = <span class="number">40.0</span>
+    pm.initial_velocity_min = <span class="number">3.0</span>
+    pm.initial_velocity_max = <span class="number">6.0</span>
+    pm.gravity = <span class="function">Vector3</span>(<span class="number">0</span>, -<span class="number">9.8</span>, <span class="number">0</span>)
+
+    <span class="comment"># Fade from orange to transparent over the lifetime</span>
+    <span class="keyword">var</span> grad := Gradient.<span class="function">new</span>()
+    grad.<span class="function">set_color</span>(<span class="number">0</span>, <span class="function">Color</span>(<span class="number">1.0</span>, <span class="number">0.7</span>, <span class="number">0.2</span>, <span class="number">1.0</span>))
+    grad.<span class="function">set_color</span>(<span class="number">1</span>, <span class="function">Color</span>(<span class="number">1.0</span>, <span class="number">0.2</span>, <span class="number">0.0</span>, <span class="number">0.0</span>))
+    <span class="keyword">var</span> ramp := GradientTexture1D.<span class="function">new</span>()
+    ramp.gradient = grad
+    pm.color_ramp = ramp
+
+    <span class="keyword">var</span> fx := GPUParticles3D.<span class="function">new</span>()
+    fx.amount = <span class="number">16</span>
+    fx.lifetime = <span class="number">0.4</span>
+    fx.one_shot = <span class="keyword">true</span>
+    fx.explosiveness = <span class="number">1.0</span>
+    fx.process_material = pm
+    fx.draw_pass_1 = mesh
+    <span class="keyword">return</span> fx</code></pre>
+</div>
+
+<div class="info-box">
+<strong>Easier: build it in the editor</strong>
+<ul>
+<li>Add a <span class="inline-code">GPUParticles3D</span>, create a new <span class="inline-code">ParticleProcessMaterial</span>, set a Draw Pass 1 mesh (a <span class="inline-code">QuadMesh</span> works), then tweak values while watching the preview. Save it as its own scene and instance it from code.</li>
+<li>Starting points &mdash; <strong>Sparks:</strong> amount 16, lifetime 0.4, explosiveness 1, velocity 3&ndash;6, gravity down. <strong>Dust:</strong> amount 20, lifetime 1.0, explosiveness 0.8, velocity 0.5&ndash;1.5, gravity slightly up, grey that fades out.</li>
+</ul>
+</div>
+
+<h3>Self-Freeing One-Shot Effects</h3>
+
+<div class="code-block">
+<pre><code><span class="comment"># impact_effect.gd - root script of impact_effect.tscn (a GPUParticles3D)</span>
+<span class="keyword">extends</span> <span class="type">GPUParticles3D</span>
+
+<span class="keyword">func</span> <span class="function">_ready</span>() -&gt; <span class="keyword">void</span>:
+    one_shot = <span class="keyword">true</span>
+    emitting = <span class="keyword">true</span>
+    finished.<span class="function">connect</span>(queue_free)  <span class="comment"># Clean up when the last particle fades</span>
+
+<span class="comment"># Replay an effect that already exists in the scene</span>
+$MuzzleSparks.<span class="function">restart</span>()</code></pre>
+</div>
+
+<div class="use-case">
+<div class="use-case-header">
+<div class="use-case-title">
+<span class="use-case-icon">▶</span>
+💡 Game Dev Use Case: Impact Effects for the Hitscan Weapon
+</div>
+</div>
+<div class="use-case-content">
+<p>This defines the <span class="inline-code">spawn_impact_effect()</span> function that the Hitscan Weapon example calls. Set the effect's <span class="inline-code">direction</span> to (0, 0, -1) so the sparks shoot out along the surface normal.</p>
+<div class="use-case-example">
+<div class="use-case-example-title">Example: spawn_impact_effect()</div>
+<div class="code-block">
+<pre><code><span class="keyword">const</span> IMPACT = <span class="function">preload</span>(<span class="string">"res://effects/impact_effect.tscn"</span>)
+
+<span class="keyword">func</span> <span class="function">spawn_impact_effect</span>(pos: <span class="type">Vector3</span>, normal: <span class="type">Vector3</span>) -&gt; <span class="keyword">void</span>:
+    <span class="keyword">var</span> fx = IMPACT.<span class="function">instantiate</span>()
+    <span class="function">get_tree</span>().current_scene.<span class="function">add_child</span>(fx)  <span class="comment"># In the tree before positioning</span>
+    fx.global_position = pos
+    <span class="comment"># look_at fails if the normal is parallel to the up vector</span>
+    <span class="keyword">var</span> up = Vector3.UP <span class="keyword">if</span> <span class="function">abs</span>(normal.<span class="function">dot</span>(Vector3.UP)) &lt; <span class="number">0.99</span> <span class="keyword">else</span> Vector3.RIGHT
+    fx.<span class="function">look_at</span>(pos + normal, up)</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+<div class="info-box">
+<strong>Particle gotchas</strong>
+<ul>
+<li>Invisible effect? Check that Draw Pass 1 has a mesh, and that the material uses <span class="inline-code">vertex_color_use_as_albedo</span> if you rely on the color ramp.</li>
+<li>Particles vanish when the emitter leaves the screen: the <span class="inline-code">visibility_aabb</span> is too small. Use the Particles menu &rarr; Generate Visibility AABB.</li>
+<li>Spawning many one-shot effects without freeing them leaks nodes. Connect <span class="inline-code">finished</span> to <span class="inline-code">queue_free</span> as shown above.</li>
+<li>On Web or older mobile GPUs, if GPU particles misbehave, select the node and use the Particles menu &rarr; Convert to CPUParticles3D.</li>
+</ul>
+</div>
+</div>
+
+<div class="section">
                 <h2>Quick Scripts</h2>
 
                 <h3>First-Person Controller (CharacterBody3D)</h3>
